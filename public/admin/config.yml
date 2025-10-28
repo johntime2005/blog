@@ -4,7 +4,7 @@
 backend:
   name: github
   repo: johntime2005/blog  # 您的GitHub仓库
-  branch: master  # 要使用的分支
+  branch: main  # 要使用的分支
 
 # 本地开发模式（可选）
 # 运行 npx decap-server 后取消下面注释
