@@ -1,0 +1,62 @@
+# Decap CMS 配置文件
+# 文档: https://decapcms.org/docs/configuration-options/
+
+backend:
+  name: github
+  repo: johntime2005/blog  # 您的GitHub仓库
+  branch: master  # 要使用的分支
+
+# 本地开发模式（可选）
+# 运行 npx decap-server 后取消下面注释
+# local_backend: true
+
+# 媒体文件配置
+media_folder: "public/assets/images"  # 媒体文件存储位置
+public_folder: "/assets/images"  # 公共访问路径
+
+# 发布模式：editorial_workflow 启用草稿/审核/发布工作流
+publish_mode: editorial_workflow
+
+# 站点配置
+site_url: https://blog-4qk.pages.dev
+display_url: https://blog-4qk.pages.dev
+logo_url: https://blog-4qk.pages.dev/favicon/favicon-96x96.png
+
+# 内容集合定义
+collections:
+  # 博客文章集合
+  - name: "posts"
+    label: "博客文章"
+    label_singular: "文章"
+    folder: "src/content/posts"
+    create: true  # 允许创建新文章
+    slug: "{{slug}}"  # 文件名格式
+    preview_path: "posts/{{slug}}"  # 预览路径
+    
+    # 文章字段定义
+    fields:
+      - { label: "标题", name: "title", widget: "string", required: true }
+      
+      - { label: "发布日期", name: "published", widget: "datetime", 
+          date_format: "YYYY-MM-DD", 
+          time_format: false,
+          format: "YYYY-MM-DD",
+          required: true }
+      
+      - { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false }
+      
+      - { label: "简介", name: "description", widget: "text", required: true }
+      
+      - { label: "标签", name: "tags", widget: "list", 
+          allow_add: true,
+          default: ["博客"],
+          required: true }
+      
+      - { label: "分类", name: "category", widget: "string", default: "默认分类", required: true }
+      
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
+      
+      - { label: "封面图", name: "image", widget: "image", required: false, 
+          hint: "可选：文章封面图片" }
+      
+      - { label: "正文", name: "body", widget: "markdown", required: true }
