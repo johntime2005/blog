@@ -1,16 +1,15 @@
 ---
 import type { MarkdownHeading } from "astro";
-import { widgetManager } from "../../utils/widget-manager";
 import type { WidgetComponentConfig } from "../../types/config";
-
-// 动态导入所有可能的组件
-import Profile from "./Profile.astro";
+import { widgetManager } from "../../utils/widget-manager";
+import Advertisement from "./Advertisement.astro";
 import Announcement from "./Announcement.astro";
 import Categories from "./Categories.astro";
+import MusicPlayer from "./MusicPlayer.svelte";
+// 动态导入所有可能的组件
+import Profile from "./Profile.astro";
 import Tags from "./Tags.astro";
 import TOC from "./TOC.astro";
-import Advertisement from "./Advertisement.astro";
-import MusicPlayer from "./MusicPlayer.svelte";
 
 interface Props {
 	class?: string;
@@ -25,8 +24,14 @@ const topComponents = widgetManager.getComponentsByPosition("top");
 const stickyComponents = widgetManager.getComponentsByPosition("sticky");
 
 // 调试信息
-console.log("Top components:", topComponents.map(c => c.type));
-console.log("Sticky components:", stickyComponents.map(c => c.type));
+console.log(
+	"Top components:",
+	topComponents.map((c) => c.type),
+);
+console.log(
+	"Sticky components:",
+	stickyComponents.map((c) => c.type),
+);
 
 // 扩展的组件映射表，支持自定义组件
 const componentMap = {
@@ -52,7 +57,7 @@ console.log("Component map keys:", Object.keys(componentMap));
 function createComponentRenderer(
 	component: WidgetComponentConfig,
 	index: number,
-	allComponents: WidgetComponentConfig[],
+	_allComponents: WidgetComponentConfig[],
 ) {
 	const ComponentToRender =
 		componentMap[component.type as keyof typeof componentMap];

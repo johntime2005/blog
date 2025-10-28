@@ -3,7 +3,7 @@ import ConfigCarrier from "@components/ConfigCarrier.astro";
 import FontManager from "@components/FontManager.astro";
 import MusicPlayer from "@components/widget/MusicPlayer.svelte";
 
-import { profileConfig, siteConfig, sakuraConfig } from "../config";
+import { profileConfig, sakuraConfig, siteConfig } from "../config";
 import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
@@ -11,8 +11,8 @@ import {
 	DARK_MODE,
 	DEFAULT_THEME,
 	LIGHT_MODE,
-	SYSTEM_MODE,
 	PAGE_WIDTH,
+	SYSTEM_MODE,
 } from "../constants/constants";
 import { defaultFavicons } from "../constants/icon";
 import type { Favicon, SakuraConfig } from "../types/config";
@@ -78,7 +78,9 @@ if (!banner || typeof banner !== "string" || banner.trim() === "") {
 // TODO don't use post cover as banner for now
 banner = getDefaultBackground();
 
-const enableBanner = siteConfig.backgroundWallpaper.enable && siteConfig.backgroundWallpaper.mode === "banner";
+const enableBanner =
+	siteConfig.backgroundWallpaper.enable &&
+	siteConfig.backgroundWallpaper.mode === "banner";
 
 let pageTitle: string;
 if (title) {
@@ -110,7 +112,6 @@ const bannerOffsetByPosition = {
 };
 const bannerOffset =
 	bannerOffsetByPosition[siteConfig.backgroundWallpaper.position || "center"];
-
 ---
 
 <!DOCTYPE html>

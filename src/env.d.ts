@@ -1,8 +1,8 @@
 /// <reference types="astro/client" />
 /// <reference path="../.astro/types.d.ts" />
 
-interface ImportMetaEnv {}
+type ImportMetaEnv = {};
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv;
+	readonly env: ImportMetaEnv;
 }

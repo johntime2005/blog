@@ -1,439 +1,447 @@
 <script lang="ts">
-    // 导入 Svelte 的生命周期函数和过渡效果
-    
-    // 导入 Icon 组件，用于显示图标
-    import Icon from "@iconify/svelte";
-    import { onDestroy, onMount } from "svelte";
-    import { slide } from "svelte/transition";
-    // 从配置文件中导入音乐播放器配置
-    import { musicPlayerConfig } from "../../config/musicConfig";
-    // 导入国际化相关的 Key 和 i18n 实例
-    import Key from "../../i18n/i18nKey";
-    import { i18n } from "../../i18n/translation";
-    
-    // 从配置中获取各种设置
-    const config = musicPlayerConfig;
-    
-    // 音乐播放器模式，可选 "local" 或 "meting"
-    let mode = config.mode ?? "meting";
-    
-    // Meting API 配置
-    let meting_api = config.meting?.api ?? "https://www.bilibili.uno/api?server=:server&type=:type&id=:id&auth=:auth&r=:r";
-    let meting_id = config.meting?.playlist?.id ?? "8814137515";
-    let meting_server = config.meting?.playlist?.server ?? "netease";
-    let meting_type = config.meting?.playlist?.type ?? "playlist";
-    let fallback_apis = config.meting?.fallbackApis ?? [];
-    
-    // 本地音乐配置
-    let local_playlist = config.local?.playlist ?? [];
-    
-    // 行为配置
-    let autoplay = config.behavior?.autoplay ?? false;
-    let default_volume = config.behavior?.defaultVolume ?? 0.7;
-    let default_shuffle = config.behavior?.defaultShuffle ?? false;
-    let default_repeat = config.behavior?.defaultRepeat ?? 0;
-    
-    // 位置配置
-    let position_bottom = config.behavior?.position?.bottom ?? 16;
-    let position_right = config.behavior?.position?.right ?? 16;
-    let position_left = config.behavior?.position?.left ?? "auto";
-    
-    
-    // UI 配置
-    let show_playlist_button = config.ui?.display?.showPlaylistButton ?? true;
-    let show_volume_control = config.ui?.display?.showVolumeControl ?? true;
-    let show_shuffle_button = config.ui?.display?.showShuffleButton ?? true;
-    let show_repeat_button = config.ui?.display?.showRepeatButton ?? true;
-    let show_skip_buttons = config.ui?.display?.showSkipButtons ?? true;
-    
-    // 播放列表配置
-    let playlist_max_height = config.ui?.playlist?.maxHeight ?? 384;
-    let playlist_width = config.ui?.playlist?.width ?? 320;
-    let show_track_numbers = config.ui?.playlist?.showTrackNumbers ?? true;
-    let show_duration = config.ui?.playlist?.showDuration ?? true;
-    
-    // 动画配置
-    let cover_rotation_enable = config.ui?.animation?.coverRotation?.enable ?? true;
-    let cover_rotation_speed = config.ui?.animation?.coverRotation?.speed ?? 3;
-    let cover_rotation_pause_hover = config.ui?.animation?.coverRotation?.pauseOnHover ?? true;
-    
-    // 错误处理配置
-    let show_error_messages = config.errorHandling?.showErrorMessages ?? true;
-    let error_display_duration = config.errorHandling?.errorDisplayDuration ?? 3000;
-    let auto_skip_on_error = config.errorHandling?.autoSkipOnError ?? true;
-    
-    
-    // 播放状态，默认为 false (未播放)
-    let isPlaying = false;
-    // 播放器是否展开，默认为 false
-    let isExpanded = false;
-    // 播放器是否折叠贴边，默认为 true（默认显示折叠状态）
-    let isCollapsed = true;
-    // 是否显示播放列表，默认为 false
-    let showPlaylist = false;
-    // 当前播放时间，默认为 0
-    let currentTime = 0;
-    // 歌曲总时长，默认为 0
-    let duration = 0;
-    // 音量，从配置中获取默认值
-    let volume = default_volume;
-    // 是否静音，默认为 false
-    let isMuted = false;
-    // 是否正在加载，默认为 false
-    let isLoading = false;
-    // 是否随机播放，从配置中获取默认值
-    let isShuffled = default_shuffle;
-    // 循环模式，从配置中获取默认值
-    let isRepeating = default_repeat;
-    // 错误信息，默认为空字符串
-    let errorMessage = "";
-    // 是否显示错误信息，默认为 false
-    let showError = false;
-    
-    // 当前歌曲信息
-    let currentSong = {
-        title: "Loading ...",
-        artist: "Loading ...", 
-        cover: "/favicon/favicon-light-192.png",
-        url: "",
-        duration: 0,
-    };
-    
-    let playlist: Array<{
-        id: number;
-        title: string;
-        artist: string;
-        cover: string;
-        url: string;
-        duration: number;
-    }> = [];
-    let currentIndex = 0;
-    let audio: HTMLAudioElement;
-    let progressBar: HTMLElement;
-    let volumeBar: HTMLElement;
-    
-    async function fetchMetingPlaylist() {
-        if (!meting_api || !meting_id) return;
-        isLoading = true;
-        
-        // 尝试主API
-        const apis = [meting_api, ...fallback_apis];
-        
-        for (let i = 0; i < apis.length; i++) {
-            try {
-                const apiUrl = apis[i]
-                    .replace(":server", meting_server)
-                    .replace(":type", meting_type)
-                    .replace(":id", meting_id)
-                    .replace(":auth", "")
-                    .replace(":r", Date.now().toString());
-                
-                const res = await fetch(apiUrl);
-                if (!res.ok) throw new Error(`API ${i + 1} error: ${res.status}`);
-                
-                const list = await res.json();
-                playlist = list.map((song) => {
-                    let title = song.name ?? song.title ?? "未知歌曲";
-                    let artist = song.artist ?? song.author ?? "未知艺术家";
-                    let dur = song.duration ?? 0;
-                    if (dur > 10000) dur = Math.floor(dur / 1000);
-                    if (!Number.isFinite(dur) || dur <= 0) dur = 0;
-                    return {
-                        id: song.id,
-                        title,
-                        artist,
-                        cover: song.pic ?? "",
-                        url: song.url ?? "",
-                        duration: dur,
-                    };
-                });
-                
-                if (playlist.length > 0) {
-                    loadSong(playlist[0]);
-                }
-                isLoading = false;
-                return; // 成功获取，退出循环
-                
-            } catch (e) {
-                console.warn(`API ${i + 1} failed:`, e);
-                if (i === apis.length - 1) {
-                    // 所有API都失败了
-                    showErrorMessage("所有 Meting API 都无法访问，请检查网络连接");
-                    isLoading = false;
-                }
-            }
-        }
-    }
-    
-    function togglePlay() {
-        if (!audio || !currentSong.url) return;
-        if (isPlaying) {
-            audio.pause();
-        } else {
-            audio.play();
-        }
-    }
-    
-    function toggleExpanded() {
-        isExpanded = !isExpanded;
-        if (isExpanded) {
-            showPlaylist = false;
-            isCollapsed = false;
-        }
-    }
-    
+// 导入 Svelte 的生命周期函数和过渡效果
 
-    function toggleCollapsed() {
-        isCollapsed = !isCollapsed;
-        if (isCollapsed) {
-            isExpanded = false;
-            showPlaylist = false;
-        } else {
-            // 从折叠状态展开时，直接显示完整播放器
-            isExpanded = true;
-            showPlaylist = false;
-        }
-    }
-    
-    function togglePlaylist() {
-        showPlaylist = !showPlaylist;
-    }
-    
-    function toggleShuffle() {
-        isShuffled = !isShuffled;
-    }
-    
-    function toggleRepeat() {
-        isRepeating = (isRepeating + 1) % 3;
-    }
-    
-    function previousSong() {
-        if (playlist.length === 0) return;
-        const newIndex = currentIndex > 0 ? currentIndex - 1 : playlist.length - 1;
-        playSong(newIndex);
-    }
-    
-    function nextSong() {
-        if (playlist.length === 0) return;
-        
-        let newIndex: number;
-        if (isShuffled) {
-            do {
-                newIndex = Math.floor(Math.random() * playlist.length);
-            } while (newIndex === currentIndex && playlist.length > 1);
-        } else {
-            newIndex = currentIndex < playlist.length - 1 ? currentIndex + 1 : 0;
-        }
-        console.log('nextSong 调用', { currentIndex, newIndex, playlistLength: playlist.length, isShuffled });
-        playSong(newIndex);
-    }
-    
-    function playSong(index: number) {
-        if (index < 0 || index >= playlist.length) return;
-        const wasPlaying = isPlaying;
-        currentIndex = index;
-        if (audio) audio.pause();
-        loadSong(playlist[currentIndex]);
-        if (wasPlaying || !isPlaying) {
-            setTimeout(() => {
-                if (!audio) return;
-                if (audio.readyState >= 2) {
-                    audio.play().catch(() => {});
-                } else {
-                    audio.addEventListener(
-                        "canplay",
-                        () => {
-                            audio.play().catch(() => {});
-                        },
-                        { once: true },
-                    );
-                }
-            }, 100);
-        }
-    }
-    
-    function getAssetPath(path: string): string {
-        if (path.startsWith("http://") || path.startsWith("https://")) return path;
-        if (path.startsWith("/")) return path;
-        return `/${path}`;
-    }
-    
-    
-    function loadSong(song: typeof currentSong) {
-        if (!song || !audio) return;
-        currentSong = { ...song };
-        if (song.url) {
-            isLoading = true;
-            audio.pause();
-            audio.currentTime = 0;
-            currentTime = 0;
-            duration = song.duration ?? 0;
-            audio.removeEventListener("loadeddata", handleLoadSuccess);
-            audio.removeEventListener("error", handleLoadError);
-            audio.removeEventListener("loadstart", handleLoadStart);
-            audio.addEventListener("loadeddata", handleLoadSuccess, { once: true });
-            audio.addEventListener("error", handleLoadError, { once: true });
-            audio.addEventListener("loadstart", handleLoadStart, { once: true });
-            audio.src = getAssetPath(song.url);
-            audio.load();
-        } else {
-            isLoading = false;
-        }
-    }
-    
-    function handleLoadSuccess() {
-        isLoading = false;
-        if (audio?.duration && audio.duration > 1) {
-            duration = Math.floor(audio.duration);
-            if (playlist[currentIndex]) playlist[currentIndex].duration = duration;
-            currentSong.duration = duration;
-        }
-    }
-    
-    function handleLoadError(event: Event) {
-        isLoading = false;
-        showErrorMessage(`无法播放 "${currentSong.title}"，正在尝试下一首...`);
-        if (auto_skip_on_error && playlist.length > 1) {
-            setTimeout(() => nextSong(), 1000);
-        } else if (playlist.length <= 1) {
-            showErrorMessage("播放列表中没有可用的歌曲");
-        }
-    }
-    
-    function handleLoadStart() {}
-    
-    function showErrorMessage(message: string) {
-        if (!show_error_messages) return;
-        errorMessage = message;
-        showError = true;
-        setTimeout(() => {
-            showError = false;
-        }, error_display_duration);
-    }
-    function hideError() {
-        showError = false;
-    }
-    
-    function setProgress(event: MouseEvent) {
-        if (!audio || !progressBar) return;
-        const rect = progressBar.getBoundingClientRect();
-        const percent = (event.clientX - rect.left) / rect.width;
-        const newTime = percent * duration;
-        audio.currentTime = newTime;
-        currentTime = newTime;
-    }
-    
-    function setVolume(event: MouseEvent) {
-        if (!audio || !volumeBar) return;
-        const rect = volumeBar.getBoundingClientRect();
-        const percent = Math.max(
-            0,
-            Math.min(1, (event.clientX - rect.left) / rect.width),
-        );
-        volume = percent;
-        audio.volume = volume;
-        isMuted = volume === 0;
-    }
-    
-    function toggleMute() {
-        if (!audio) return;
-        isMuted = !isMuted;
-        audio.muted = isMuted;
-    }
-    
-    function formatTime(seconds: number): string {
-        if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-    
-    function handleAudioEvents() {
-        if (!audio) return;
-        audio.addEventListener("play", () => {
-            isPlaying = true;
-        });
-        audio.addEventListener("pause", () => {
-            isPlaying = false;
-        });
-        audio.addEventListener("timeupdate", () => {
-            currentTime = audio.currentTime;
-        });
-        audio.addEventListener("ended", () => {
-            console.log('歌曲播放结束', { isRepeating, currentIndex, playlistLength: playlist.length, isShuffled });
-            if (isRepeating === 1) {
-                // 单曲循环：重新播放当前歌曲
-                console.log('单曲循环：重新播放当前歌曲');
-                audio.currentTime = 0;
-                audio.play().catch(() => {});
-            } else if (isRepeating === 2) {
-                // 列表循环：播放下一首
-                console.log('列表循环：播放下一首');
-                nextSong();
-            } else if (currentIndex < playlist.length - 1 || isShuffled) {
-                // 非循环模式：如果还有下一首或随机播放，则播放下一首
-                console.log('非循环模式：播放下一首');
-                nextSong();
-            } else {
-                // 非循环模式：播放列表结束，停止播放
-                console.log('非循环模式：播放列表结束，停止播放');
-                isPlaying = false;
-            }
-        });
-        audio.addEventListener("error", (event) => {
-            isLoading = false;
-        });
-        audio.addEventListener("stalled", () => {});
-        audio.addEventListener("waiting", () => {});
-    }
-    
-    onMount(() => {
-        audio = new Audio();
-        audio.volume = volume;
-        audio.muted = isMuted;
-        handleAudioEvents();
-        
-        if (!musicPlayerConfig.enable) {
-            return;
-        }
-        
-        if (mode === "meting") {
-            fetchMetingPlaylist().then(() => {
-                // 如果启用了自动播放，则开始播放
-                if (autoplay && playlist.length > 0) {
-                    setTimeout(() => {
-                        if (audio && audio.readyState >= 2) {
-                            audio.play().catch(() => {});
-                        }
-                    }, 1000);
-                }
-            });
-        } else {
-            // 使用本地播放列表，不发送任何API请求
-            playlist = [...local_playlist];
-            if (playlist.length > 0) {
-                loadSong(playlist[0]);
-                // 如果启用了自动播放，则开始播放
-                if (autoplay) {
-                    setTimeout(() => {
-                        if (audio && audio.readyState >= 2) {
-                            audio.play().catch(() => {});
-                        }
-                    }, 1000);
-                }
-            } else {
-                showErrorMessage("本地播放列表为空");
-            }
-        }
-    });
-    
-    onDestroy(() => {
-        if (audio) {
-            audio.pause();
-            audio.src = "";
-        }
-    });
-    </script>
+// 导入 Icon 组件，用于显示图标
+import Icon from "@iconify/svelte";
+import { onDestroy, onMount } from "svelte";
+import { slide } from "svelte/transition";
+// 从配置文件中导入音乐播放器配置
+import { musicPlayerConfig } from "../../config/musicConfig";
+// 导入国际化相关的 Key 和 i18n 实例
+import Key from "../../i18n/i18nKey";
+import { i18n } from "../../i18n/translation";
+
+// 从配置中获取各种设置
+const config = musicPlayerConfig;
+
+// 音乐播放器模式，可选 "local" 或 "meting"
+let mode = config.mode ?? "meting";
+
+// Meting API 配置
+let meting_api =
+	config.meting?.api ??
+	"https://www.bilibili.uno/api?server=:server&type=:type&id=:id&auth=:auth&r=:r";
+let meting_id = config.meting?.playlist?.id ?? "8814137515";
+let meting_server = config.meting?.playlist?.server ?? "netease";
+let meting_type = config.meting?.playlist?.type ?? "playlist";
+let fallback_apis = config.meting?.fallbackApis ?? [];
+
+// 本地音乐配置
+let local_playlist = config.local?.playlist ?? [];
+
+// 行为配置
+let autoplay = config.behavior?.autoplay ?? false;
+let default_volume = config.behavior?.defaultVolume ?? 0.7;
+let default_shuffle = config.behavior?.defaultShuffle ?? false;
+let default_repeat = config.behavior?.defaultRepeat ?? 0;
+
+// 位置配置
+let position_bottom = config.behavior?.position?.bottom ?? 16;
+let position_right = config.behavior?.position?.right ?? 16;
+let position_left = config.behavior?.position?.left ?? "auto";
+
+// UI 配置
+let show_playlist_button = config.ui?.display?.showPlaylistButton ?? true;
+let show_volume_control = config.ui?.display?.showVolumeControl ?? true;
+let show_shuffle_button = config.ui?.display?.showShuffleButton ?? true;
+let show_repeat_button = config.ui?.display?.showRepeatButton ?? true;
+let show_skip_buttons = config.ui?.display?.showSkipButtons ?? true;
+
+// 播放列表配置
+let playlist_max_height = config.ui?.playlist?.maxHeight ?? 384;
+let playlist_width = config.ui?.playlist?.width ?? 320;
+let show_track_numbers = config.ui?.playlist?.showTrackNumbers ?? true;
+let show_duration = config.ui?.playlist?.showDuration ?? true;
+
+// 动画配置
+let cover_rotation_enable = config.ui?.animation?.coverRotation?.enable ?? true;
+let cover_rotation_speed = config.ui?.animation?.coverRotation?.speed ?? 3;
+let cover_rotation_pause_hover =
+	config.ui?.animation?.coverRotation?.pauseOnHover ?? true;
+
+// 错误处理配置
+let show_error_messages = config.errorHandling?.showErrorMessages ?? true;
+let error_display_duration = config.errorHandling?.errorDisplayDuration ?? 3000;
+let auto_skip_on_error = config.errorHandling?.autoSkipOnError ?? true;
+
+// 播放状态，默认为 false (未播放)
+let isPlaying = false;
+// 播放器是否展开，默认为 false
+let isExpanded = false;
+// 播放器是否折叠贴边，默认为 true（默认显示折叠状态）
+let isCollapsed = true;
+// 是否显示播放列表，默认为 false
+let showPlaylist = false;
+// 当前播放时间，默认为 0
+let currentTime = 0;
+// 歌曲总时长，默认为 0
+let duration = 0;
+// 音量，从配置中获取默认值
+let volume = default_volume;
+// 是否静音，默认为 false
+let isMuted = false;
+// 是否正在加载，默认为 false
+let isLoading = false;
+// 是否随机播放，从配置中获取默认值
+let isShuffled = default_shuffle;
+// 循环模式，从配置中获取默认值
+let isRepeating = default_repeat;
+// 错误信息，默认为空字符串
+let errorMessage = "";
+// 是否显示错误信息，默认为 false
+let showError = false;
+
+// 当前歌曲信息
+let currentSong = {
+	title: "Loading ...",
+	artist: "Loading ...",
+	cover: "/favicon/favicon-light-192.png",
+	url: "",
+	duration: 0,
+};
+
+let playlist: Array<{
+	id: number;
+	title: string;
+	artist: string;
+	cover: string;
+	url: string;
+	duration: number;
+}> = [];
+let currentIndex = 0;
+let audio: HTMLAudioElement;
+let progressBar: HTMLElement;
+let volumeBar: HTMLElement;
+
+async function fetchMetingPlaylist() {
+	if (!meting_api || !meting_id) return;
+	isLoading = true;
+
+	// 尝试主API
+	const apis = [meting_api, ...fallback_apis];
+
+	for (let i = 0; i < apis.length; i++) {
+		try {
+			const apiUrl = apis[i]
+				.replace(":server", meting_server)
+				.replace(":type", meting_type)
+				.replace(":id", meting_id)
+				.replace(":auth", "")
+				.replace(":r", Date.now().toString());
+
+			const res = await fetch(apiUrl);
+			if (!res.ok) throw new Error(`API ${i + 1} error: ${res.status}`);
+
+			const list = await res.json();
+			playlist = list.map((song) => {
+				let title = song.name ?? song.title ?? "未知歌曲";
+				let artist = song.artist ?? song.author ?? "未知艺术家";
+				let dur = song.duration ?? 0;
+				if (dur > 10000) dur = Math.floor(dur / 1000);
+				if (!Number.isFinite(dur) || dur <= 0) dur = 0;
+				return {
+					id: song.id,
+					title,
+					artist,
+					cover: song.pic ?? "",
+					url: song.url ?? "",
+					duration: dur,
+				};
+			});
+
+			if (playlist.length > 0) {
+				loadSong(playlist[0]);
+			}
+			isLoading = false;
+			return; // 成功获取，退出循环
+		} catch (e) {
+			console.warn(`API ${i + 1} failed:`, e);
+			if (i === apis.length - 1) {
+				// 所有API都失败了
+				showErrorMessage("所有 Meting API 都无法访问，请检查网络连接");
+				isLoading = false;
+			}
+		}
+	}
+}
+
+function togglePlay() {
+	if (!audio || !currentSong.url) return;
+	if (isPlaying) {
+		audio.pause();
+	} else {
+		audio.play();
+	}
+}
+
+function toggleExpanded() {
+	isExpanded = !isExpanded;
+	if (isExpanded) {
+		showPlaylist = false;
+		isCollapsed = false;
+	}
+}
+
+function toggleCollapsed() {
+	isCollapsed = !isCollapsed;
+	if (isCollapsed) {
+		isExpanded = false;
+		showPlaylist = false;
+	} else {
+		// 从折叠状态展开时，直接显示完整播放器
+		isExpanded = true;
+		showPlaylist = false;
+	}
+}
+
+function togglePlaylist() {
+	showPlaylist = !showPlaylist;
+}
+
+function toggleShuffle() {
+	isShuffled = !isShuffled;
+}
+
+function toggleRepeat() {
+	isRepeating = (isRepeating + 1) % 3;
+}
+
+function previousSong() {
+	if (playlist.length === 0) return;
+	const newIndex = currentIndex > 0 ? currentIndex - 1 : playlist.length - 1;
+	playSong(newIndex);
+}
+
+function nextSong() {
+	if (playlist.length === 0) return;
+
+	let newIndex: number;
+	if (isShuffled) {
+		do {
+			newIndex = Math.floor(Math.random() * playlist.length);
+		} while (newIndex === currentIndex && playlist.length > 1);
+	} else {
+		newIndex = currentIndex < playlist.length - 1 ? currentIndex + 1 : 0;
+	}
+	console.log("nextSong 调用", {
+		currentIndex,
+		newIndex,
+		playlistLength: playlist.length,
+		isShuffled,
+	});
+	playSong(newIndex);
+}
+
+function playSong(index: number) {
+	if (index < 0 || index >= playlist.length) return;
+	const wasPlaying = isPlaying;
+	currentIndex = index;
+	if (audio) audio.pause();
+	loadSong(playlist[currentIndex]);
+	if (wasPlaying || !isPlaying) {
+		setTimeout(() => {
+			if (!audio) return;
+			if (audio.readyState >= 2) {
+				audio.play().catch(() => {});
+			} else {
+				audio.addEventListener(
+					"canplay",
+					() => {
+						audio.play().catch(() => {});
+					},
+					{ once: true },
+				);
+			}
+		}, 100);
+	}
+}
+
+function getAssetPath(path: string): string {
+	if (path.startsWith("http://") || path.startsWith("https://")) return path;
+	if (path.startsWith("/")) return path;
+	return `/${path}`;
+}
+
+function loadSong(song: typeof currentSong) {
+	if (!song || !audio) return;
+	currentSong = { ...song };
+	if (song.url) {
+		isLoading = true;
+		audio.pause();
+		audio.currentTime = 0;
+		currentTime = 0;
+		duration = song.duration ?? 0;
+		audio.removeEventListener("loadeddata", handleLoadSuccess);
+		audio.removeEventListener("error", handleLoadError);
+		audio.removeEventListener("loadstart", handleLoadStart);
+		audio.addEventListener("loadeddata", handleLoadSuccess, { once: true });
+		audio.addEventListener("error", handleLoadError, { once: true });
+		audio.addEventListener("loadstart", handleLoadStart, { once: true });
+		audio.src = getAssetPath(song.url);
+		audio.load();
+	} else {
+		isLoading = false;
+	}
+}
+
+function handleLoadSuccess() {
+	isLoading = false;
+	if (audio?.duration && audio.duration > 1) {
+		duration = Math.floor(audio.duration);
+		if (playlist[currentIndex]) playlist[currentIndex].duration = duration;
+		currentSong.duration = duration;
+	}
+}
+
+function handleLoadError(_event: Event) {
+	isLoading = false;
+	showErrorMessage(`无法播放 "${currentSong.title}"，正在尝试下一首...`);
+	if (auto_skip_on_error && playlist.length > 1) {
+		setTimeout(() => nextSong(), 1000);
+	} else if (playlist.length <= 1) {
+		showErrorMessage("播放列表中没有可用的歌曲");
+	}
+}
+
+function handleLoadStart() {}
+
+function showErrorMessage(message: string) {
+	if (!show_error_messages) return;
+	errorMessage = message;
+	showError = true;
+	setTimeout(() => {
+		showError = false;
+	}, error_display_duration);
+}
+function hideError() {
+	showError = false;
+}
+
+function setProgress(event: MouseEvent) {
+	if (!audio || !progressBar) return;
+	const rect = progressBar.getBoundingClientRect();
+	const percent = (event.clientX - rect.left) / rect.width;
+	const newTime = percent * duration;
+	audio.currentTime = newTime;
+	currentTime = newTime;
+}
+
+function setVolume(event: MouseEvent) {
+	if (!audio || !volumeBar) return;
+	const rect = volumeBar.getBoundingClientRect();
+	const percent = Math.max(
+		0,
+		Math.min(1, (event.clientX - rect.left) / rect.width),
+	);
+	volume = percent;
+	audio.volume = volume;
+	isMuted = volume === 0;
+}
+
+function toggleMute() {
+	if (!audio) return;
+	isMuted = !isMuted;
+	audio.muted = isMuted;
+}
+
+function formatTime(seconds: number): string {
+	if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+	const mins = Math.floor(seconds / 60);
+	const secs = Math.floor(seconds % 60);
+	return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function handleAudioEvents() {
+	if (!audio) return;
+	audio.addEventListener("play", () => {
+		isPlaying = true;
+	});
+	audio.addEventListener("pause", () => {
+		isPlaying = false;
+	});
+	audio.addEventListener("timeupdate", () => {
+		currentTime = audio.currentTime;
+	});
+	audio.addEventListener("ended", () => {
+		console.log("歌曲播放结束", {
+			isRepeating,
+			currentIndex,
+			playlistLength: playlist.length,
+			isShuffled,
+		});
+		if (isRepeating === 1) {
+			// 单曲循环：重新播放当前歌曲
+			console.log("单曲循环：重新播放当前歌曲");
+			audio.currentTime = 0;
+			audio.play().catch(() => {});
+		} else if (isRepeating === 2) {
+			// 列表循环：播放下一首
+			console.log("列表循环：播放下一首");
+			nextSong();
+		} else if (currentIndex < playlist.length - 1 || isShuffled) {
+			// 非循环模式：如果还有下一首或随机播放，则播放下一首
+			console.log("非循环模式：播放下一首");
+			nextSong();
+		} else {
+			// 非循环模式：播放列表结束，停止播放
+			console.log("非循环模式：播放列表结束，停止播放");
+			isPlaying = false;
+		}
+	});
+	audio.addEventListener("error", (_event) => {
+		isLoading = false;
+	});
+	audio.addEventListener("stalled", () => {});
+	audio.addEventListener("waiting", () => {});
+}
+
+onMount(() => {
+	audio = new Audio();
+	audio.volume = volume;
+	audio.muted = isMuted;
+	handleAudioEvents();
+
+	if (!musicPlayerConfig.enable) {
+		return;
+	}
+
+	if (mode === "meting") {
+		fetchMetingPlaylist().then(() => {
+			// 如果启用了自动播放，则开始播放
+			if (autoplay && playlist.length > 0) {
+				setTimeout(() => {
+					if (audio && audio.readyState >= 2) {
+						audio.play().catch(() => {});
+					}
+				}, 1000);
+			}
+		});
+	} else {
+		// 使用本地播放列表，不发送任何API请求
+		playlist = [...local_playlist];
+		if (playlist.length > 0) {
+			loadSong(playlist[0]);
+			// 如果启用了自动播放，则开始播放
+			if (autoplay) {
+				setTimeout(() => {
+					if (audio && audio.readyState >= 2) {
+						audio.play().catch(() => {});
+					}
+				}, 1000);
+			}
+		} else {
+			showErrorMessage("本地播放列表为空");
+		}
+	}
+});
+
+onDestroy(() => {
+	if (audio) {
+		audio.pause();
+		audio.src = "";
+	}
+});
+</script>
     
     {#if musicPlayerConfig.enable}
     {#if showError}

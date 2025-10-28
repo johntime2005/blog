@@ -1,39 +1,39 @@
 ---
 import { Icon } from "astro-icon/components";
-import { profileConfig, commentConfig } from "../config";
+import { commentConfig, profileConfig } from "../config";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { formatDateToYYYYMMDD } from "../utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "../utils/url-utils";
 
 export interface Props {
-  published: Date;
-  updated?: Date;
-  category?: string;
-  tags?: string[];
-  hideUpdateDate?: boolean;
-  hideTagsForMobile?: boolean;
-  isHome?: boolean;
-  className?: string;
-  slug?: string;
-  words?: number;
-  minutes?: number;
-  showWordCount?: boolean; // 是否显示字数统计，默认false显示标签
+	published: Date;
+	updated?: Date;
+	category?: string;
+	tags?: string[];
+	hideUpdateDate?: boolean;
+	hideTagsForMobile?: boolean;
+	isHome?: boolean;
+	className?: string;
+	slug?: string;
+	words?: number;
+	minutes?: number;
+	showWordCount?: boolean; // 是否显示字数统计，默认false显示标签
 }
 
 const {
-  published,
-  updated,
-  category,
-  tags,
-  hideUpdateDate,
-  hideTagsForMobile,
-  isHome,
-  className = "",
-  slug,
-  words,
-  minutes,
-  showWordCount = false,
+	published,
+	updated,
+	category,
+	tags,
+	hideUpdateDate,
+	hideTagsForMobile,
+	isHome,
+	className = "",
+	slug,
+	words,
+	minutes,
+	showWordCount = false,
 } = Astro.props;
 ---
 

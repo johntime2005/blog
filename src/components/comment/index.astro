@@ -1,13 +1,13 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { commentConfig } from "../../config/commentConfig";
-import { i18n } from "../../i18n/translation";
 import Key from "../../i18n/i18nKey";
+import { i18n } from "../../i18n/translation";
 import Twikoo from "./Twikoo.astro";
 
 interface Props {
-  post: CollectionEntry<"posts"> | CollectionEntry<"spec">;
-  customPath?: string;
+	post: CollectionEntry<"posts"> | CollectionEntry<"spec">;
+	customPath?: string;
 }
 
 const { post, customPath } = Astro.props;
@@ -15,12 +15,12 @@ const { id, data, slug } = post;
 
 // 根据页面类型确定路径
 const path =
-  customPath || (post.collection === "posts" ? `/posts/${slug}` : `/${slug}`);
+	customPath || (post.collection === "posts" ? `/posts/${slug}` : `/${slug}`);
 const url = `${Astro.site?.href}${path}`;
 
 let commentService = "";
 if (commentConfig?.enable && commentConfig?.twikoo) {
-  commentService = "twikoo";
+	commentService = "twikoo";
 }
 ---
 

@@ -7,7 +7,7 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
 
 // 检查页面是否启用
 if (!siteConfig.pages.anime) {
-  return Astro.redirect("/404/");
+	return Astro.redirect("/404/");
 }
 
 // 服务器端只传递配置信息到客户端
@@ -15,11 +15,11 @@ const BANGUMI_USER_ID = siteConfig.bangumi?.userId || "your-user-id";
 
 // 收藏状态映射
 const COLLECTION_TYPES = {
-  1: { key: "wish", name: "想看", icon: "⏰", color: "amber" },
-  2: { key: "done", name: "看过", icon: "✅", color: "blue" },
-  3: { key: "doing", name: "在看", icon: "▶️", color: "green" },
-  4: { key: "onhold", name: "搁置", icon: "⏸️", color: "orange" },
-  5: { key: "dropped", name: "抛弃", icon: "❌", color: "red" },
+	1: { key: "wish", name: "想看", icon: "⏰", color: "amber" },
+	2: { key: "done", name: "看过", icon: "✅", color: "blue" },
+	3: { key: "doing", name: "在看", icon: "▶️", color: "green" },
+	4: { key: "onhold", name: "搁置", icon: "⏸️", color: "orange" },
+	5: { key: "dropped", name: "抛弃", icon: "❌", color: "red" },
 } as const;
 ---
 
