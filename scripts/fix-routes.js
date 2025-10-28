@@ -6,24 +6,23 @@ const routesFile = path.join(process.cwd(), 'dist', '_routes.json');
 try {
   const routes = JSON.parse(fs.readFileSync(routesFile, 'utf8'));
 
-  // 从exclude列表中移除/admin/*以及/admin
+  // 从include列表中移除/admin*，让静态文件直接提供
+  if (routes.include) {
+    routes.include = routes.include.filter(route => route !== '/admin*');
+  }
+
+  // 从exclude列表中移除/admin/*以及/admin（如果存在）
   routes.exclude = routes.exclude.filter(route =>
-    route !== '/admin/*' && route !== '/admin/'
+    route !== '/admin/*' && route !== '/admin/' && route !== '/admin'
   );
 
-  // 添加特定的include规则来处理admin路由
+  // 确保/_server-islands/*在列表中（Astro需要）
   if (!routes.include) {
     routes.include = [];
   }
 
-  // 确保/_server-islands/*在列表中（Astro需要）
   if (!routes.include.includes('/_server-islands/*')) {
     routes.include.unshift('/_server-islands/*');
-  }
-
-  // 添加/admin*处理
-  if (!routes.include.includes('/admin*')) {
-    routes.include.push('/admin*');
   }
 
   fs.writeFileSync(routesFile, JSON.stringify(routes, null, 2) + '\n');
