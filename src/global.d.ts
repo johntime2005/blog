@@ -20,6 +20,18 @@ declare global {
 		};
 
 		mobileTOCInit?: () => void;
+
+		// Custom scroll detection properties
+		semifullScrollHandler?: ((event: Event) => void) | null;
+		initSemifullScrollDetection?: () => void;
+
+		// Icon loader
+		__iconifyLoader?: {
+			load: () => Promise<void>;
+		};
+
+		// CMS Config
+		CMS_CONFIG?: any;
 	}
 }
 

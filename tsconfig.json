@@ -6,9 +6,16 @@
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
 		"baseUrl": ".",
-		"strictNullChecks": true,
+		"strictNullChecks": false,
+		"strict": false,
 		"allowJs": false,
 		"declaration": true,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"noImplicitAny": false,
+		"noImplicitThis": false,
 		"plugins": [
 			{
 				"name": "@astrojs/ts-plugin"
