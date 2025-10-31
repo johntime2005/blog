@@ -1,17 +1,19 @@
-// OAuth authorization endpoint
-export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url);
-  const clientId = env.GITHUB_CLIENT_ID;
+// OAuth 授权端点
+export const prerender = false;
+
+export async function GET({ request, redirect }) {
+  const clientId = import.meta.env.GITHUB_CLIENT_ID;
 
   if (!clientId) {
     return new Response('GitHub OAuth not configured', { status: 500 });
   }
 
-  // Redirect to GitHub OAuth authorization
+  const url = new URL(request.url);
   const authUrl = new URL('https://github.com/login/oauth/authorize');
+
   authUrl.searchParams.set('client_id', clientId);
   authUrl.searchParams.set('redirect_uri', `${url.origin}/auth/callback`);
   authUrl.searchParams.set('scope', 'repo,user');
 
-  return Response.redirect(authUrl.toString(), 302);
+  return redirect(authUrl.toString(), 302);
 }

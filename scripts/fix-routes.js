@@ -24,10 +24,7 @@ try {
     routes.include.unshift('/_server-islands/*');
   }
 
-  // 确保 /auth/* 在 include 列表中（Decap CMS OAuth 需要）
-  if (!routes.include.includes('/auth/*')) {
-    routes.include.push('/auth/*');
-  }
+  // 注意：/auth/* 现在是 Astro 端点，不需要在 include 列表中
 
   fs.writeFileSync(routesFile, JSON.stringify(routes, null, 2) + '\n');
   console.log('✅ Fixed _routes.json to handle /admin correctly');

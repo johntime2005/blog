@@ -1,5 +1,7 @@
-// OAuth callback endpoint
-export async function onRequestGet({ request, env }) {
+// OAuth 回调端点
+export const prerender = false;
+
+export async function GET({ request }) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
@@ -12,6 +14,13 @@ export async function onRequestGet({ request, env }) {
     return new Response('Missing code parameter', { status: 400 });
   }
 
+  const clientId = import.meta.env.GITHUB_CLIENT_ID;
+  const clientSecret = import.meta.env.GITHUB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return new Response('GitHub OAuth not configured', { status: 500 });
+  }
+
   try {
     // Exchange code for access token
     const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
@@ -21,8 +30,8 @@ export async function onRequestGet({ request, env }) {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        client_id: env.GITHUB_CLIENT_ID,
-        client_secret: env.GITHUB_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         code: code,
       }),
     });
