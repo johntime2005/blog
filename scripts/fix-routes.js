@@ -6,10 +6,11 @@ const routesFile = path.join(process.cwd(), 'dist', '_routes.json');
 try {
   const routes = JSON.parse(fs.readFileSync(routesFile, 'utf8'));
 
-  // 从exclude列表中确保/admin/*不存在，让静态文件直接提供
-  routes.exclude = routes.exclude.filter(route => route !== '/admin/*');
+  // 确保 /admin 和 /admin/* 都在exclude列表中，让Cloudflare直接提供静态文件
+  if (!routes.exclude.includes('/admin')) {
+    routes.exclude.push('/admin');
+  }
 
-  // 添加/admin/*到exclude列表，让Cloudflare直接提供静态文件而不经过Worker
   if (!routes.exclude.includes('/admin/*')) {
     routes.exclude.push('/admin/*');
   }
