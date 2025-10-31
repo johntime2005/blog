@@ -1,11 +1,12 @@
 // OAuth 授权端点
 export const prerender = false;
 
-export async function GET({ request, redirect }) {
-  const clientId = import.meta.env.GITHUB_CLIENT_ID;
+export async function GET({ request, redirect, locals }) {
+  const runtime = locals.runtime as any;
+  const clientId = runtime?.env?.GITHUB_CLIENT_ID;
 
   if (!clientId) {
-    return new Response('GitHub OAuth not configured', { status: 500 });
+    return new Response('GitHub OAuth not configured. Please set GITHUB_CLIENT_ID in Cloudflare Pages environment variables.', { status: 500 });
   }
 
   const url = new URL(request.url);

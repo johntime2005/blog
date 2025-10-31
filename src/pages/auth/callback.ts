@@ -1,7 +1,7 @@
 // OAuth 回调端点
 export const prerender = false;
 
-export async function GET({ request }) {
+export async function GET({ request, locals }) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
@@ -14,11 +14,12 @@ export async function GET({ request }) {
     return new Response('Missing code parameter', { status: 400 });
   }
 
-  const clientId = import.meta.env.GITHUB_CLIENT_ID;
-  const clientSecret = import.meta.env.GITHUB_CLIENT_SECRET;
+  const runtime = locals.runtime as any;
+  const clientId = runtime?.env?.GITHUB_CLIENT_ID;
+  const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    return new Response('GitHub OAuth not configured', { status: 500 });
+    return new Response('GitHub OAuth not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in Cloudflare Pages environment variables.', { status: 500 });
   }
 
   try {
