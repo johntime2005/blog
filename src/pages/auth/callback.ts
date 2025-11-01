@@ -59,7 +59,12 @@ export async function GET({ request, locals }) {
   <script>
     (function() {
       const data = ${JSON.stringify(data)};
-      const message = 'authorization:github:success:' + JSON.stringify(data);
+      // Decap CMS 期望的消息格式：只包含 token 和 provider
+      const postMsgContent = {
+        token: data.access_token,
+        provider: "github"
+      };
+      const message = 'authorization:github:success:' + JSON.stringify(postMsgContent);
 
       if (window.opener) {
         window.opener.postMessage(message, window.location.origin);
