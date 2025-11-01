@@ -59,16 +59,18 @@
           folder: "src/content/posts",
           create: true,
           slug: "{{slug}}",
+          format: "frontmatter",
+          extension: "md",
           fields: [
-            { label: "标题", name: "title", widget: "string", required: true },
-            { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true },
-            { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false },
-            { label: "简介", name: "description", widget: "text", required: true },
-            { label: "标签", name: "tags", widget: "list", allow_add: true, default: ["博客"], required: true },
-            { label: "分类", name: "category", widget: "string", default: "默认分类", required: true },
-            { label: "草稿", name: "draft", widget: "boolean", default: false, required: true },
-            { label: "封面图", name: "image", widget: "image", required: false, hint: "可选：文章封面图片" },
-            { label: "正文", name: "body", widget: "markdown", required: true }
+            { label: "标题", name: "title", widget: "string" },
+            { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD" },
+            { label: "置顶", name: "pinned", widget: "boolean", default: false },
+            { label: "简介", name: "description", widget: "text" },
+            { label: "标签", name: "tags", widget: "list" },
+            { label: "分类", name: "category", widget: "string" },
+            { label: "草稿", name: "draft", widget: "boolean", default: false },
+            { label: "封面图", name: "image", widget: "image", required: false },
+            { label: "正文", name: "body", widget: "markdown" }
           ]
         }
       ]
