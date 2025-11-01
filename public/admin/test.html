@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Decap CMS Test</title>
+</head>
+<body>
+  <h1>Decap CMS 测试页面</h1>
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
+    // 最小化配置 - 测试 Decap CMS 是否能加载
+    CMS.init({
+      config: {
+        backend: {
+          name: "test-repo"
+        },
+        collections: [
+          {
+            name: "test",
+            label: "测试",
+            folder: "test",
+            fields: [
+              {label: "标题", name: "title", widget: "string"},
+              {label: "内容", name: "body", widget: "markdown"}
+            ]
+          }
+        ]
+      }
+    });
+  </script>
+</body>
+</html>
