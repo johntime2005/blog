@@ -59,6 +59,9 @@ export async function GET({ request, locals }) {
   <script>
     (function() {
       const data = ${JSON.stringify(data)};
+
+      console.log('OAuth callback received, data:', data);
+
       // Decap CMS 期望的消息格式：只包含 token 和 provider
       const postMsgContent = {
         token: data.access_token,
@@ -66,10 +69,19 @@ export async function GET({ request, locals }) {
       };
       const message = 'authorization:github:success:' + JSON.stringify(postMsgContent);
 
+      console.log('Sending message to opener:', message);
+
       if (window.opener) {
-        window.opener.postMessage(message, window.location.origin);
-        window.close();
+        // 使用 "*" 以确保消息能够跨域传递
+        window.opener.postMessage(message, "*");
+        console.log('Message sent, attempting to close window...');
+
+        // 延迟关闭，确保消息已发送
+        setTimeout(function() {
+          window.close();
+        }, 1000);
       } else {
+        console.error('No window.opener found!');
         document.body.innerHTML = '<p>Authorization complete. You can close this window.</p>';
       }
     })();
