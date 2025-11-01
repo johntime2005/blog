@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>Content Manager</title>
+  <style>
+    /* 弹窗提示样式 */
+    .popup-notice {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff6b6b;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      max-width: 90%;
+      text-align: center;
+    }
+    .popup-notice.show {
+      display: block;
+    }
+    .popup-notice button {
+      margin-top: 10px;
+      background: white;
+      color: #ff6b6b;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
   <script>
     window.CMS_CONFIG = {
       backend: {
@@ -46,9 +79,40 @@
   </script>
 </head>
 <body>
+  <!-- 弹窗阻止提示 -->
+  <div id="popupNotice" class="popup-notice">
+    ⚠️ 浏览器阻止了登录弹窗！<br>
+    请在地址栏右侧点击弹窗图标，允许弹窗后重试<br>
+    或者<br>
+    <button onclick="window.location.href='/auth'">直接跳转登录</button>
+  </div>
+
   <!-- Include the script that builds the page and powers Decap CMS -->
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
+    // 检测弹窗被阻止
+    (function() {
+      let popupBlocked = false;
+
+      // 监听 window.open 调用
+      const originalOpen = window.open;
+      window.open = function() {
+        const popup = originalOpen.apply(this, arguments);
+
+        // 检查弹窗是否被阻止
+        if (!popup || popup.closed || typeof popup.closed == 'undefined') {
+          popupBlocked = true;
+          const notice = document.getElementById('popupNotice');
+          if (notice) {
+            notice.classList.add('show');
+            setTimeout(() => notice.classList.remove('show'), 10000);
+          }
+        }
+
+        return popup;
+      };
+    })();
+
     if (window.CMS && window.CMS_CONFIG) {
       window.CMS.init({ config: window.CMS_CONFIG });
     }

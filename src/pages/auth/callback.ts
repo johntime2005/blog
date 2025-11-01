@@ -46,6 +46,12 @@ export async function GET({ request, locals }) {
       });
     }
 
+    // Decap CMS 期望的消息格式
+    const postMsgContent = {
+      token: data.access_token,
+      provider: "github"
+    };
+
     // Return success HTML that posts message to opener
     const html = `
 <!DOCTYPE html>
@@ -63,10 +69,7 @@ export async function GET({ request, locals }) {
       console.log('OAuth callback received, data:', data);
 
       // Decap CMS 期望的消息格式：只包含 token 和 provider
-      const postMsgContent = {
-        token: data.access_token,
-        provider: "github"
-      };
+      const postMsgContent = ${JSON.stringify(postMsgContent)};
       const message = 'authorization:github:success:' + JSON.stringify(postMsgContent);
 
       console.log('Sending message to opener:', message);
@@ -81,8 +84,16 @@ export async function GET({ request, locals }) {
           window.close();
         }, 1000);
       } else {
-        console.error('No window.opener found!');
-        document.body.innerHTML = '<p>Authorization complete. You can close this window.</p>';
+        // 如果没有 opener（直接访问的情况），使用 localStorage 传递 token
+        console.log('No window.opener, storing token in localStorage');
+        try {
+          localStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
+          // 重定向回管理面板
+          window.location.href = '/admin';
+        } catch (e) {
+          console.error('Failed to store token:', e);
+          document.body.innerHTML = '<p>Authorization complete. Please <a href="/admin">return to admin panel</a>.</p>';
+        }
       }
     })();
   </script>
