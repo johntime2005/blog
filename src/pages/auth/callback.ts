@@ -65,24 +65,41 @@ export async function GET({ request, locals }) {
   <script>
     (function() {
       const data = ${JSON.stringify(data)};
+      const origin = window.location.origin;
 
       console.log('OAuth callback received, data:', data);
+      console.log('Origin:', origin);
 
       // Decap CMS 期望的消息格式：只包含 token 和 provider
       const postMsgContent = ${JSON.stringify(postMsgContent)};
-      const message = 'authorization:github:success:' + JSON.stringify(postMsgContent);
-
-      console.log('Sending message to opener:', message);
 
       if (window.opener) {
-        // 使用 "*" 以确保消息能够跨域传递
-        window.opener.postMessage(message, "*");
-        console.log('Message sent, attempting to close window...');
+        // Decap CMS OAuth 握手流程
+        function receiveMessage(e) {
+          console.log('Received message from opener:', e.data, 'origin:', e.origin);
 
-        // 延迟关闭，确保消息已发送
-        setTimeout(function() {
-          window.close();
-        }, 1000);
+          // 收到来自 opener 的消息后，发送 success 消息
+          const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
+          console.log('Sending success message:', successMessage);
+
+          window.opener.postMessage(successMessage, e.origin);
+
+          // 移除监听器
+          window.removeEventListener("message", receiveMessage, false);
+
+          // 延迟关闭窗口
+          setTimeout(function() {
+            console.log('Closing window...');
+            window.close();
+          }, 1000);
+        }
+
+        // 监听来自 opener 的消息
+        window.addEventListener("message", receiveMessage, false);
+
+        // 首先发送 authorizing 消息通知 opener
+        console.log('Sending authorizing message to opener');
+        window.opener.postMessage("authorizing:github", origin);
       } else {
         // 如果没有 opener（直接访问的情况），使用 localStorage 传递 token
         console.log('No window.opener, storing token in localStorage');
