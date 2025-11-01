@@ -49,10 +49,8 @@
       },
       media_folder: "public/assets/images",
       public_folder: "/assets/images",
-      publish_mode: "editorial_workflow",
       site_url: "https://blog.johntime.top",
       display_url: "https://blog.johntime.top",
-      logo_url: "https://blog.johntime.top/favicon/favicon-96x96.png",
       collections: [
         {
           name: "posts",
@@ -61,7 +59,6 @@
           folder: "src/content/posts",
           create: true,
           slug: "{{slug}}",
-          preview_path: "posts/{{slug}}",
           fields: [
             { label: "标题", name: "title", widget: "string", required: true },
             { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true },
