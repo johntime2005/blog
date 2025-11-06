@@ -5,6 +5,8 @@ backend:
   name: github
   repo: johntime2005/blog  # 您的GitHub仓库
   branch: main  # 要使用的分支
+  base_url: https://blog.johntime.top  # OAuth 认证基础URL
+  auth_endpoint: auth  # OAuth 认证端点
 
 # 本地开发模式（可选）
 # 运行 npx decap-server 后取消下面注释
@@ -18,9 +20,9 @@ public_folder: "/assets/images"  # 公共访问路径
 publish_mode: editorial_workflow
 
 # 站点配置
-site_url: https://blog-4qk.pages.dev
-display_url: https://blog-4qk.pages.dev
-logo_url: https://blog-4qk.pages.dev/favicon/favicon-96x96.png
+site_url: https://blog.johntime.top
+display_url: https://blog.johntime.top
+logo_url: /favicon/favicon-96x96.png
 
 # 内容集合定义
 collections:
@@ -32,31 +34,53 @@ collections:
     create: true  # 允许创建新文章
     slug: "{{slug}}"  # 文件名格式
     preview_path: "posts/{{slug}}"  # 预览路径
-    
+
     # 文章字段定义
     fields:
       - { label: "标题", name: "title", widget: "string", required: true }
-      
-      - { label: "发布日期", name: "published", widget: "datetime", 
-          date_format: "YYYY-MM-DD", 
+
+      - { label: "发布日期", name: "published", widget: "datetime",
+          date_format: "YYYY-MM-DD",
           time_format: false,
           format: "YYYY-MM-DD",
           required: true }
-      
+
       - { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false }
-      
+
       - { label: "简介", name: "description", widget: "text", required: true }
-      
-      - { label: "标签", name: "tags", widget: "list", 
+
+      - { label: "标签", name: "tags", widget: "list",
           allow_add: true,
           default: ["博客"],
           required: true }
-      
+
       - { label: "分类", name: "category", widget: "string", default: "默认分类", required: true }
-      
+
       - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
-      
-      - { label: "封面图", name: "image", widget: "image", required: false, 
+
+      - { label: "封面图", name: "image", widget: "image", required: false,
           hint: "可选：文章封面图片" }
-      
+
       - { label: "正文", name: "body", widget: "markdown", required: true }
+
+  # 友链管理
+  - name: "friends"
+    label: "友链管理"
+    files:
+      - label: "友情链接"
+        name: "friends"
+        file: "src/content/spec/friends.md"
+        fields:
+          - { label: "标题", name: "title", widget: "string", default: "友情链接" }
+          - { label: "描述", name: "description", widget: "string", default: "与优秀的朋友们一起成长" }
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容" }
+
+  # 关于页面
+  - name: "about"
+    label: "关于页面"
+    files:
+      - label: "关于我"
+        name: "about"
+        file: "src/content/spec/about.md"
+        fields:
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑关于页面的 Markdown 内容" }
