@@ -9,14 +9,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "记录生活，分享技术",
 	description:
 		"johntime 的个人博客，记录学习笔记、技术分享、生活随笔。内容涵盖服务器搭建、开源项目、旅行记录等。",
-	keywords: [
-		"johntime",
-		"个人博客",
-		"技术博客",
-		"开源",
-		"旅行",
-		"生活记录",
-	],
+	keywords: ["johntime", "个人博客", "技术博客", "开源", "旅行", "生活记录"],
 
 	lang: SITE_LANG,
 
@@ -48,7 +41,7 @@ export const siteConfig: SiteConfig = {
 
 	// 追番配置
 	bangumi: {
-		userId: "456736081", // 在此处设置你的Bangumi用户ID
+		userId: "1176159", // 在此处设置你的Bangumi用户ID
 	},
 
 	// 文章页底部的"上次编辑时间"卡片开关

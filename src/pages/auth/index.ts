@@ -2,59 +2,64 @@
 export const prerender = false;
 
 export async function GET({ request, redirect, locals }) {
-  try {
-    const runtime = locals.runtime as any;
-    const clientId = runtime?.env?.GITHUB_CLIENT_ID;
+	try {
+		const runtime = locals.runtime as any;
+		const clientId = runtime?.env?.GITHUB_CLIENT_ID;
 
-    // 详细的环境变量检查
-    if (!clientId) {
-      console.error('[OAuth] GITHUB_CLIENT_ID 未配置');
-      return new Response(
-        buildErrorPage(
-          '配置错误',
-          'GitHub OAuth 未配置。请在 Cloudflare Pages 环境变量中设置 GITHUB_CLIENT_ID。',
-          [
-            '1. 访问 Cloudflare Pages 控制台',
-            '2. 进入项目设置 → Environment variables',
-            '3. 添加 GITHUB_CLIENT_ID 和 GITHUB_CLIENT_SECRET',
-            '4. 重新部署项目'
-          ]
-        ),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
-        }
-      );
-    }
+		// 详细的环境变量检查
+		if (!clientId) {
+			console.error("[OAuth] GITHUB_CLIENT_ID 未配置");
+			return new Response(
+				buildErrorPage(
+					"配置错误",
+					"GitHub OAuth 未配置。请在 Cloudflare Pages 环境变量中设置 GITHUB_CLIENT_ID。",
+					[
+						"1. 访问 Cloudflare Pages 控制台",
+						"2. 进入项目设置 → Environment variables",
+						"3. 添加 GITHUB_CLIENT_ID 和 GITHUB_CLIENT_SECRET",
+						"4. 重新部署项目",
+					],
+				),
+				{
+					status: 500,
+					headers: { "Content-Type": "text/html; charset=utf-8" },
+				},
+			);
+		}
 
-    const url = new URL(request.url);
-    const authUrl = new URL('https://github.com/login/oauth/authorize');
+		const url = new URL(request.url);
+		const authUrl = new URL("https://github.com/login/oauth/authorize");
 
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('redirect_uri', `${url.origin}/auth/callback`);
-    authUrl.searchParams.set('scope', 'repo,user');
+		authUrl.searchParams.set("client_id", clientId);
+		authUrl.searchParams.set("redirect_uri", `${url.origin}/auth/callback`);
+		authUrl.searchParams.set("scope", "repo,user");
 
-    console.log('[OAuth] 重定向到 GitHub 授权页面');
-    return redirect(authUrl.toString(), 302);
-  } catch (error) {
-    console.error('[OAuth] 授权请求失败:', error);
-    return new Response(
-      buildErrorPage(
-        '授权失败',
-        '无法启动 GitHub 授权流程。',
-        ['请刷新页面重试', '如果问题持续，请联系管理员'],
-        error instanceof Error ? error.message : String(error)
-      ),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    );
-  }
+		console.log("[OAuth] 重定向到 GitHub 授权页面");
+		return redirect(authUrl.toString(), 302);
+	} catch (error) {
+		console.error("[OAuth] 授权请求失败:", error);
+		return new Response(
+			buildErrorPage(
+				"授权失败",
+				"无法启动 GitHub 授权流程。",
+				["请刷新页面重试", "如果问题持续，请联系管理员"],
+				error instanceof Error ? error.message : String(error),
+			),
+			{
+				status: 500,
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			},
+		);
+	}
 }
 
-function buildErrorPage(title: string, message: string, steps: string[], detail?: string): string {
-  return `
+function buildErrorPage(
+	title: string,
+	message: string,
+	steps: string[],
+	detail?: string,
+): string {
+	return `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -158,15 +163,19 @@ function buildErrorPage(title: string, message: string, steps: string[], detail?
   <div class="container">
     <h1>❌ ${title}</h1>
     <p class="message">${message}</p>
-    ${steps.length > 0 ? `
+    ${
+			steps.length > 0
+				? `
     <div class="steps">
       <h3>解决步骤：</h3>
       <ol>
-        ${steps.map(step => `<li>${step}</li>`).join('')}
+        ${steps.map((step) => `<li>${step}</li>`).join("")}
       </ol>
     </div>
-    ` : ''}
-    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ''}
+    `
+				: ""
+		}
+    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ""}
     <div class="actions">
       <button class="primary" onclick="window.location.reload()">刷新重试</button>
       <a href="/admin" class="secondary">返回后台</a>

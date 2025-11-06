@@ -2,161 +2,162 @@
 export const prerender = false;
 
 export async function GET({ request, locals }) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  const error = url.searchParams.get('error');
-  const errorDescription = url.searchParams.get('error_description');
+	const url = new URL(request.url);
+	const code = url.searchParams.get("code");
+	const error = url.searchParams.get("error");
+	const errorDescription = url.searchParams.get("error_description");
 
-  // 处理用户拒绝授权
-  if (error) {
-    console.error('[OAuth] GitHub 授权失败:', error, errorDescription);
-    return new Response(
-      buildErrorPage(
-        '授权被拒绝',
-        error === 'access_denied'
-          ? '您拒绝了授权请求。要使用 CMS 管理后台，需要授予 GitHub 访问权限。'
-          : `授权失败: ${error}`,
-        [
-          '1. 点击下方按钮重新尝试授权',
-          '2. 在 GitHub 授权页面点击"授权"',
-          '3. 确保您的 GitHub 账号有仓库访问权限'
-        ],
-        errorDescription || undefined
-      ),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    );
-  }
+	// 处理用户拒绝授权
+	if (error) {
+		console.error("[OAuth] GitHub 授权失败:", error, errorDescription);
+		return new Response(
+			buildErrorPage(
+				"授权被拒绝",
+				error === "access_denied"
+					? "您拒绝了授权请求。要使用 CMS 管理后台，需要授予 GitHub 访问权限。"
+					: `授权失败: ${error}`,
+				[
+					"1. 点击下方按钮重新尝试授权",
+					'2. 在 GitHub 授权页面点击"授权"',
+					"3. 确保您的 GitHub 账号有仓库访问权限",
+				],
+				errorDescription || undefined,
+			),
+			{
+				status: 400,
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			},
+		);
+	}
 
-  // 检查授权码
-  if (!code) {
-    console.error('[OAuth] 缺少授权码');
-    return new Response(
-      buildErrorPage(
-        '授权参数缺失',
-        '未收到 GitHub 授权码。这可能是授权流程被中断。',
-        ['请重新开始授权流程']
-      ),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    );
-  }
+	// 检查授权码
+	if (!code) {
+		console.error("[OAuth] 缺少授权码");
+		return new Response(
+			buildErrorPage(
+				"授权参数缺失",
+				"未收到 GitHub 授权码。这可能是授权流程被中断。",
+				["请重新开始授权流程"],
+			),
+			{
+				status: 400,
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			},
+		);
+	}
 
-  const runtime = locals.runtime as any;
-  const clientId = runtime?.env?.GITHUB_CLIENT_ID;
-  const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
+	const runtime = locals.runtime as any;
+	const clientId = runtime?.env?.GITHUB_CLIENT_ID;
+	const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
 
-  // 检查环境变量
-  if (!clientId || !clientSecret) {
-    console.error('[OAuth] 环境变量未配置', { hasClientId: !!clientId, hasClientSecret: !!clientSecret });
-    return new Response(
-      buildErrorPage(
-        '服务器配置错误',
-        'GitHub OAuth 环境变量未正确配置。',
-        [
-          '请联系管理员配置以下环境变量：',
-          '• GITHUB_CLIENT_ID',
-          '• GITHUB_CLIENT_SECRET'
-        ]
-      ),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    );
-  }
+	// 检查环境变量
+	if (!clientId || !clientSecret) {
+		console.error("[OAuth] 环境变量未配置", {
+			hasClientId: !!clientId,
+			hasClientSecret: !!clientSecret,
+		});
+		return new Response(
+			buildErrorPage("服务器配置错误", "GitHub OAuth 环境变量未正确配置。", [
+				"请联系管理员配置以下环境变量：",
+				"• GITHUB_CLIENT_ID",
+				"• GITHUB_CLIENT_SECRET",
+			]),
+			{
+				status: 500,
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			},
+		);
+	}
 
-  try {
-    console.log('[OAuth] 正在交换授权码为访问令牌...');
+	try {
+		console.log("[OAuth] 正在交换授权码为访问令牌...");
 
-    // 交换授权码为访问令牌
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code: code,
-      }),
-    });
+		// 交换授权码为访问令牌
+		const tokenResponse = await fetch(
+			"https://github.com/login/oauth/access_token",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					client_id: clientId,
+					client_secret: clientSecret,
+					code: code,
+				}),
+			},
+		);
 
-    const data = await tokenResponse.json();
+		const data = await tokenResponse.json();
 
-    // 检查 GitHub API 错误
-    if (data.error) {
-      console.error('[OAuth] GitHub API 错误:', data);
-      return new Response(
-        buildErrorPage(
-          'GitHub 授权失败',
-          `GitHub 返回错误: ${data.error}`,
-          ['请重新尝试授权', '确保 OAuth App 配置正确'],
-          data.error_description || data.error_uri
-        ),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
-        }
-      );
-    }
+		// 检查 GitHub API 错误
+		if (data.error) {
+			console.error("[OAuth] GitHub API 错误:", data);
+			return new Response(
+				buildErrorPage(
+					"GitHub 授权失败",
+					`GitHub 返回错误: ${data.error}`,
+					["请重新尝试授权", "确保 OAuth App 配置正确"],
+					data.error_description || data.error_uri,
+				),
+				{
+					status: 400,
+					headers: { "Content-Type": "text/html; charset=utf-8" },
+				},
+			);
+		}
 
-    // 检查访问令牌
-    if (!data.access_token) {
-      console.error('[OAuth] 未收到访问令牌:', data);
-      return new Response(
-        buildErrorPage(
-          '令牌获取失败',
-          '无法从 GitHub 获取访问令牌。',
-          ['请重新尝试授权', '如果问题持续，请检查 OAuth App 配置']
-        ),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
-        }
-      );
-    }
+		// 检查访问令牌
+		if (!data.access_token) {
+			console.error("[OAuth] 未收到访问令牌:", data);
+			return new Response(
+				buildErrorPage("令牌获取失败", "无法从 GitHub 获取访问令牌。", [
+					"请重新尝试授权",
+					"如果问题持续，请检查 OAuth App 配置",
+				]),
+				{
+					status: 500,
+					headers: { "Content-Type": "text/html; charset=utf-8" },
+				},
+			);
+		}
 
-    console.log('[OAuth] 授权成功，准备返回 CMS');
+		console.log("[OAuth] 授权成功，准备返回 CMS");
 
-    // Decap CMS 期望的消息格式
-    const postMsgContent = {
-      token: data.access_token,
-      provider: "github"
-    };
+		// Decap CMS 期望的消息格式
+		const postMsgContent = {
+			token: data.access_token,
+			provider: "github",
+		};
 
-    // 返回成功页面
-    return new Response(
-      buildSuccessPage(postMsgContent),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      }
-    );
-  } catch (error) {
-    console.error('[OAuth] 令牌交换失败:', error);
-    return new Response(
-      buildErrorPage(
-        '授权过程出错',
-        '在处理 GitHub 授权时发生错误。',
-        ['请重新尝试授权', '如果问题持续，请联系管理员'],
-        error instanceof Error ? error.message : String(error)
-      ),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      }
-    );
-  }
+		// 返回成功页面
+		return new Response(buildSuccessPage(postMsgContent), {
+			status: 200,
+			headers: { "Content-Type": "text/html; charset=utf-8" },
+		});
+	} catch (error) {
+		console.error("[OAuth] 令牌交换失败:", error);
+		return new Response(
+			buildErrorPage(
+				"授权过程出错",
+				"在处理 GitHub 授权时发生错误。",
+				["请重新尝试授权", "如果问题持续，请联系管理员"],
+				error instanceof Error ? error.message : String(error),
+			),
+			{
+				status: 500,
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			},
+		);
+	}
 }
 
-function buildSuccessPage(postMsgContent: { token: string; provider: string }): string {
-  return `
+function buildSuccessPage(postMsgContent: {
+	token: string;
+	provider: string;
+}): string {
+	return `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -316,8 +317,13 @@ function buildSuccessPage(postMsgContent: { token: string; provider: string }): 
   `;
 }
 
-function buildErrorPage(title: string, message: string, steps: string[], detail?: string): string {
-  return `
+function buildErrorPage(
+	title: string,
+	message: string,
+	steps: string[],
+	detail?: string,
+): string {
+	return `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -422,15 +428,19 @@ function buildErrorPage(title: string, message: string, steps: string[], detail?
   <div class="container">
     <h1>❌ ${title}</h1>
     <p class="message">${message}</p>
-    ${steps.length > 0 ? `
+    ${
+			steps.length > 0
+				? `
     <div class="steps">
       <h3>解决步骤：</h3>
       <ol>
-        ${steps.map(step => `<li>${step}</li>`).join('')}
+        ${steps.map((step) => `<li>${step}</li>`).join("")}
       </ol>
     </div>
-    ` : ''}
-    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ''}
+    `
+				: ""
+		}
+    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ""}
     <div class="actions">
       <a href="/auth" class="primary">重新授权</a>
       <a href="/admin" class="secondary">返回后台</a>
