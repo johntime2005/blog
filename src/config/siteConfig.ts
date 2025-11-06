@@ -5,18 +5,17 @@ import { fontConfig } from "./fontConfig";
 const SITE_LANG = "zh_CN"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
 
 export const siteConfig: SiteConfig = {
-	title: "Firefly",
-	subtitle: "Demo site",
+	title: "johntime 的博客",
+	subtitle: "记录生活，分享技术",
 	description:
-		"Firefly 是一款基于 Astro 框架开发的清新美观且现代化个人博客主题，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。",
+		"johntime 的个人博客，记录学习笔记、技术分享、生活随笔。内容涵盖服务器搭建、开源项目、旅行记录等。",
 	keywords: [
-		"Firefly",
-		"Fuwari",
-		"Astro",
-		"ACGN",
-		"博客",
+		"johntime",
+		"个人博客",
 		"技术博客",
-		"静态博客",
+		"开源",
+		"旅行",
+		"生活记录",
 	],
 
 	lang: SITE_LANG,
@@ -49,7 +48,7 @@ export const siteConfig: SiteConfig = {
 
 	// 追番配置
 	bangumi: {
-		userId: "1163581", // 在此处设置你的Bangumi用户ID
+		userId: "456736081", // 在此处设置你的Bangumi用户ID
 	},
 
 	// 文章页底部的"上次编辑时间"卡片开关

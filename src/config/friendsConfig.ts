@@ -5,31 +5,12 @@ import type { FriendLink } from "../types/config";
 // 友链配置
 export const friendsConfig: FriendLink[] = [
 	{
-		title: "夏夜流萤",
-		imgurl:
-			"https://q.qlogo.cn/headimg_dl?dst_uin=7618557&spec=640&img_type=jpg",
-		desc: "总有一场相遇，是互相喜欢的！",
-		siteurl: "https://blog.cuteleaf.cn",
-		tags: ["Blog"],
-		weight: 10, // 权重，数字越大排序越靠前
-		enabled: true, // 是否启用
-	},
-	{
-		title: "Firefly Docs",
-		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
-		desc: "Firefly主题模板文档",
-		siteurl: "https://docs-firefly.cuteleaf.cn",
-		tags: ["Docs"],
-		weight: 9,
-		enabled: true,
-	},
-	{
 		title: "Firefly",
 		imgurl: "https://docs-firefly.cuteleaf.cn/logo.png",
 		desc: "Firefly 一款清新美观的 Astro 博客主题模板",
 		siteurl: "https://github.com/CuteLeaf/Firefly",
 		tags: ["GitHub", "Theme"],
-		weight: 9,
+		weight: 10,
 		enabled: true,
 	},
 	{
@@ -38,9 +19,19 @@ export const friendsConfig: FriendLink[] = [
 		desc: "The web framework for content-driven websites. ⭐️ Star to support our work!",
 		siteurl: "https://github.com/withastro/astro",
 		tags: ["Framework"],
-		weight: 8,
+		weight: 9,
 		enabled: true,
 	},
+	// 在这里添加你的友链
+	// {
+	// 	title: "友链名称",
+	// 	imgurl: "头像URL",
+	// 	desc: "站点描述",
+	// 	siteurl: "https://example.com",
+	// 	tags: ["标签1", "标签2"],
+	// 	weight: 8,
+	// 	enabled: true,
+	// },
 ];
 
 // 获取启用的友链并按权重排序

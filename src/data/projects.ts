@@ -18,61 +18,23 @@ export interface Project {
 }
 
 export const projectsData: Project[] = [
-	{
-		id: "firefly-blog",
-		title: "Firefly 博客主题",
-		description:
-			"基于 Astro 框架开发的现代化博客主题，支持多语言、暗色模式和响应式设计等功能。",
-		image: "",
-		category: "web",
-		techStack: ["Astro", "TypeScript", "Tailwind CSS", "Svelte"],
-		status: "completed",
-		liveDemo: "https://blog.example.com",
-		sourceCode: "https://github.com/Cuteleaf/Firefly",
-		startDate: "2024-01-01",
-		endDate: "2024-06-01",
-		featured: true,
-		tags: ["博客", "主题", "开源"],
-	},
-	{
-		id: "portfolio-website",
-		title: "个人作品集网站",
-		description: "展示项目经验和技术技能的个人作品集网站。",
-		image: "",
-		category: "web",
-		techStack: ["React", "Next.js", "TypeScript", "Framer Motion"],
-		status: "completed",
-		liveDemo: "https://portfolio.example.com",
-		sourceCode: "https://github.com/example/portfolio",
-		startDate: "2023-09-01",
-		endDate: "2023-12-01",
-		featured: true,
-		tags: ["作品集", "React", "动画"],
-	},
-	{
-		id: "task-manager-app",
-		title: "任务管理应用",
-		description: "支持团队协作和项目管理的跨平台任务管理应用程序。",
-		image: "",
-		category: "mobile",
-		techStack: ["React Native", "TypeScript", "Redux", "Firebase"],
-		status: "in-progress",
-		startDate: "2024-03-01",
-		tags: ["移动应用", "效率工具", "团队协作"],
-	},
-	{
-		id: "data-visualization-tool",
-		title: "数据可视化工具",
-		description: "支持多种图表类型和交互式分析的数据可视化工具。",
-		image: "",
-		category: "web",
-		techStack: ["Vue.js", "D3.js", "TypeScript", "Node.js"],
-		status: "planned",
-		liveDemo: "https://dataviz.example.com",
-		startDate: "2023-06-01",
-		endDate: "2023-11-01",
-		tags: ["数据可视化", "分析工具", "图表"],
-	},
+	// 在这里添加你的项目
+	// 示例格式：
+	// {
+	// 	id: "my-project",
+	// 	title: "项目名称",
+	// 	description: "项目描述",
+	// 	image: "",
+	// 	category: "web",
+	// 	techStack: ["技术1", "技术2"],
+	// 	status: "completed",
+	// 	liveDemo: "https://example.com",
+	// 	sourceCode: "https://github.com/johntime/project",
+	// 	startDate: "2024-01-01",
+	// 	endDate: "2024-06-01",
+	// 	featured: true,
+	// 	tags: ["标签1", "标签2"],
+	// },
 ];
 
 // 获取项目统计信息
