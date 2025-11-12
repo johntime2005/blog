@@ -273,6 +273,7 @@ export type FooterConfig = {
 
 export type CoverImageConfig = {
   enable: boolean; // 是否启用随机图功能
+  useAsDefault?: boolean; // 当文章未设置image字段时，是否默认使用随机图
   apis: string[]; // 随机图API列表，支持 {seed} 占位符，会替换为文章slug或时间戳
   fallback?: string; // 当API请求失败时的备用图片路径
   // 加载指示器配置

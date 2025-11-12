@@ -2,21 +2,24 @@ import type { CoverImageConfig } from "../types/config";
 
 /**
  * 文章随机封面图配置
- * 
+ *
  * 使用说明：
- * 1. 在文章的 Frontmatter 中添加 image: "api" 即可使用随机图功能
- * 2. 系统会依次尝试所有配置的 API，全部失败后使用备用图片
- * 3. 如果 enable 为 false，则直接不显示封面图（也不会显示备用图）
- * 
+ * 1. 当 useAsDefault 为 true 时，所有没有设置 image 字段的文章都会自动使用随机封面图
+ * 2. 如果想禁用某篇文章的随机封面，在 Frontmatter 中明确设置 image: ""
+ * 3. 系统会依次尝试所有配置的 API，全部失败后使用备用图片
+ * 4. 如果 enable 为 false，则全局禁用随机图功能
+ *
  * // 文章 Frontmatter 示例：
  * ---
  * title: 文章标题
- * image: "api"
+ * # 不设置 image 字段，将使用随机封面（当 useAsDefault: true 时）
  * ---
  */
 export const coverImageConfig: CoverImageConfig = {
   // 随机封面图功能开关
   enable: true,
+  // 当文章未设置 image 字段时，是否默认使用随机封面图
+  useAsDefault: true,
   // 封面图API列表
   apis: [
     "https://t.alcy.cc/pc",

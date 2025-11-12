@@ -3,6 +3,7 @@ import { coverImageConfig } from "@/config/coverImageConfig";
 /**
  * 处理文章封面图
  * 当image字段为"api"时，从配置的随机图API获取图片
+ * 当image为空且useAsDefault为true时，自动使用随机封面
  * @param image - 文章frontmatter中的image字段值
  * @param seed - 用于生成随机图的种子（通常使用文章slug或id）
  * @returns 处理后的图片URL
@@ -11,9 +12,15 @@ export async function processCoverImage(
   image: string | undefined,
   seed?: string
 ): Promise<string> {
-  // 如果image不存在或为空，直接返回
+  // 如果image不存在或为空
   if (!image || image === "") {
-    return "";
+    // 检查是否启用默认使用随机图
+    if (coverImageConfig.useAsDefault && coverImageConfig.enable) {
+      // 将空image当作"api"处理
+      image = "api";
+    } else {
+      return "";
+    }
   }
 
   // 如果image不是"api"，直接返回原始值
@@ -68,14 +75,21 @@ export async function processCoverImage(
 /**
  * 同步版本（用于不需要异步的场景）
  * 当image字段为"api"时，返回第一个API URL，客户端会依次尝试所有API
+ * 当image为空且useAsDefault为true时，自动使用随机封面
  */
 export function processCoverImageSync(
   image: string | undefined,
   seed?: string
 ): string {
-  // 如果image不存在或为空，直接返回
+  // 如果image不存在或为空
   if (!image || image === "") {
-    return "";
+    // 检查是否启用默认使用随机图
+    if (coverImageConfig.useAsDefault && coverImageConfig.enable) {
+      // 将空image当作"api"处理
+      image = "api";
+    } else {
+      return "";
+    }
   }
 
   // 如果image不是"api"，直接返回原始值
