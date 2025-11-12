@@ -3,16 +3,20 @@
 
 <div align="center">
 
-# Firefly
-> 一款清新美观的 Astro 博客主题模板
-</div>
+# johntime 的个人博客
 
+> 基于 [Firefly](https://github.com/CuteLeaf/Firefly) 主题的个性化博客
+
+**✨ 主题来源**: [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) - 一款清新美观的 Astro 博客主题模板
+
+</div>
 
 ---
 
-[**🖥️在线预览(Netlify)**](https://demo-firefly.netlify.app/)  &emsp;
-[**📝使用文档**](https://docs-firefly.cuteleaf.cn/) &emsp;
-[**🍀我的博客**](https://blog.cuteleaf.cn) 
+[**🌐 我的博客**](https://blog.johntime.top) &emsp;
+[**🖥️ 主题在线预览**](https://demo-firefly.netlify.app/) &emsp;
+[**📝 主题使用文档**](https://docs-firefly.cuteleaf.cn/) &emsp;
+[**⭐ Firefly 主题仓库**](https://github.com/CuteLeaf/Firefly) 
 
 ⚡ 静态站点生成: 基于Astro的超快加载速度和SEO优化
 
@@ -33,6 +37,18 @@
   </tr>
  </table>
 
+## 🎯 个性化特性
+
+本仓库是基于 Firefly 主题的个性化配置版本，包含以下优化：
+
+- 🚀 **优化部署配置**: 完善的 Cloudflare Pages 部署指南和一键部署按钮
+- 📖 **增强文档**: 添加详细的初始化向导 (INIT_GUIDE.md) 和 AI 开发文档 (CLAUDE.md)
+- 🖥️ **Web 初始化向导**: 首次访问自动跳转到可视化配置页面
+- ⚙️ **个性化配置**: 根据个人偏好调整的主题色、字体和布局
+- 📝 **内容迁移**: 包含从 WordPress 迁移博客内容的完整教程
+
+访问我的博客查看实际效果: [blog.johntime.top](https://blog.johntime.top)
+
 ## 🚀 快速开始
 
 ### 环境要求
@@ -42,10 +58,12 @@
 
 ### 本地开发部署
 
+> **💡 提示**: 如果你想使用原版 Firefly 主题而非本个性化版本，请访问 [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)
+
 1. **克隆仓库：**
    ```bash
-   git clone https://github.com/Cuteleaf/Firefly.git
-   cd Firefly
+   git clone https://github.com/johntime2005/blog.git
+   cd blog
    ```
 
 2. **安装依赖：**
@@ -160,17 +178,48 @@ lang: jp      # 仅当文章语言与 `config.ts` 中的网站语言不同时需
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证。详见 [LICENSE](../LICENSE) 文件。
+本项目采用 MIT 许可证。详见 [LICENSE](./LICENSE) 文件。
 
 ## 🙏 致谢
 
-- 感谢原始 [Fuwari](https://github.com/saicaca/fuwari) 模板
-- 感谢基于Fuwari二次开发的[Mizuki](https://github.com/matsuzaka-yuki/Mizuki) 模板
-- 本项目基于 [Firefly](https://github.com/CuteLeaf/Firefly) 进行个性化配置和部署优化
-- 查看本项目的定制版本: [johntime2005/blog](https://github.com/johntime2005/blog)
-- 感谢b站up[公公的日常](https://space.bilibili.com/3546750017080050)提供的Q版 流萤 看板娘切片数据模型
-- 使用 [Astro](https://astro.build) 和 [Tailwind CSS](https://tailwindcss.com) 构建
-- 图标来自 [Iconify](https://iconify.design/)
+### 主题来源
+
+本博客基于以下优秀的开源项目构建：
+
+- **🎨 [Firefly](https://github.com/CuteLeaf/Firefly)** - 主题基础，感谢 [CuteLeaf](https://github.com/CuteLeaf) 的精心设计与维护
+- **🌸 [Mizuki](https://github.com/matsuzaka-yuki/Mizuki)** - Fuwari 的二次开发版本，提供了许多实用功能
+- **🍃 [Fuwari](https://github.com/saicaca/fuwari)** - 原始模板，为主题奠定了基础
+
+### 技术栈
+
+- ⚡ [Astro](https://astro.build) - 现代化的静态站点生成器
+- 🎨 [Tailwind CSS](https://tailwindcss.com) - 实用优先的 CSS 框架
+- 🎭 [Svelte](https://svelte.dev) - 交互组件框架
+- 🎯 [Iconify](https://iconify.design/) - 统一的图标解决方案
+
+### 特别感谢
+
+- 💃 感谢 B 站 UP 主 [公公的日常](https://space.bilibili.com/3546750017080050) 提供的 Q 版流萤看板娘切片数据模型
+
 ---
 
-如有问题或建议，请提交 [Issue](https://github.com/CuteLeaf/Firefly/issues) 或 [Pull Request](https://github.com/CuteLeaf/Firefly/pulls)。
+## 📬 联系方式
+
+- **我的博客**: [blog.johntime.top](https://blog.johntime.top)
+- **GitHub**: [johntime2005](https://github.com/johntime2005)
+- **问题反馈**: [提交 Issue](https://github.com/johntime2005/blog/issues)
+
+如需使用原版 Firefly 主题，请访问：
+- **主题仓库**: [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)
+- **主题文档**: [docs-firefly.cuteleaf.cn](https://docs-firefly.cuteleaf.cn/)
+- **问题反馈**: [提交 Issue](https://github.com/CuteLeaf/Firefly/issues) 或 [Pull Request](https://github.com/CuteLeaf/Firefly/pulls)
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给原主题 [Firefly](https://github.com/CuteLeaf/Firefly) 点个 Star！**
+
+Made with ❤️ by [johntime](https://github.com/johntime2005) | Theme by [CuteLeaf](https://github.com/CuteLeaf)
+
+</div>
