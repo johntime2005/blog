@@ -157,7 +157,7 @@ async function main() {
 
 	// 更新 GitHub 链接
 	if (githubUsername && githubUsername.trim() !== "") {
-		profileConfigReplacements['url: "https://github.com/johntime"'] =
+		profileConfigReplacements['url: "https://github.com/johntime2005"'] =
 			`url: "https://github.com/${githubUsername.trim()}"`;
 	}
 
