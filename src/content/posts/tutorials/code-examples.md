@@ -3,6 +3,7 @@ title: Firefly 代码块示例
 published: 2025-08-20
 pinned: false
 description: 在Firefly中使用表达性代码的代码块在 Markdown 中的外观。
+image: "api"
 tags: [Markdown, Firefly]
 category: 博客教程
 draft: false
