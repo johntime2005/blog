@@ -58,8 +58,89 @@ collections:
 
       - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
 
+      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false,
+          hint: "开启后文章不会在主页显示，但可通过直接链接访问" }
+
       - { label: "封面图", name: "image", widget: "image", required: false,
           hint: "可选：文章封面图片" }
+
+      - { label: "正文", name: "body", widget: "markdown", required: true }
+
+  # WordPress迁移文章集合
+  - name: "wordpress-posts"
+    label: "WordPress文章"
+    label_singular: "WordPress文章"
+    folder: "src/content/posts/wordpress-import"
+    create: true  # 允许创建新文章
+    slug: "{{slug}}"  # 文件名格式
+    preview_path: "posts/{{slug}}"  # 预览路径
+
+    # 文章字段定义
+    fields:
+      - { label: "标题", name: "title", widget: "string", required: true }
+
+      - { label: "发布日期", name: "published", widget: "datetime",
+          date_format: "YYYY-MM-DD",
+          time_format: false,
+          format: "YYYY-MM-DD",
+          required: true }
+
+      - { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false }
+
+      - { label: "简介", name: "description", widget: "text", required: true }
+
+      - { label: "标签", name: "tags", widget: "list",
+          allow_add: true,
+          default: ["WordPress迁移"],
+          required: true }
+
+      - { label: "分类", name: "category", widget: "string", default: "博客", required: true }
+
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
+
+      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false,
+          hint: "开启后文章不会在主页显示，但可通过直接链接访问" }
+
+      - { label: "封面图", name: "image", widget: "image", required: false,
+          hint: "可选：文章封面图片" }
+
+      - { label: "正文", name: "body", widget: "markdown", required: true }
+
+  # 教程文章集合
+  - name: "tutorials"
+    label: "教程文章"
+    label_singular: "教程"
+    folder: "src/content/posts/tutorials"
+    create: true  # 允许创建新教程
+    slug: "{{slug}}"  # 文件名格式
+    preview_path: "posts/tutorials/{{slug}}"  # 预览路径
+
+    # 文章字段定义
+    fields:
+      - { label: "标题", name: "title", widget: "string", required: true }
+
+      - { label: "发布日期", name: "published", widget: "datetime",
+          date_format: "YYYY-MM-DD",
+          time_format: false,
+          format: "YYYY-MM-DD",
+          required: true }
+
+      - { label: "简介", name: "description", widget: "text", required: true }
+
+      - { label: "标签", name: "tags", widget: "list",
+          allow_add: true,
+          default: ["Firefly", "教程"],
+          required: true }
+
+      - { label: "分类", name: "category", widget: "string", default: "博客教程", required: true }
+
+      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
+
+      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: true, required: false,
+          hint: "教程默认不在主页显示" }
+
+      - { label: "封面图", name: "image", widget: "image", required: false,
+          hint: "可选：教程封面图片" }
 
       - { label: "正文", name: "body", widget: "markdown", required: true }
 

@@ -68,7 +68,18 @@
 
 ### 平台托管部署
 
+#### 一键部署到 Cloudflare Pages
+
+[![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/johntime2005/blog)
+
+点击上方按钮即可一键部署到 Cloudflare Pages。部署前请确保：
+- 拥有 Cloudflare 账号
+- 已登录 GitHub
+
+#### 其他平台部署
+
 - **参考[官方指南](https://docs.astro.build/zh-cn/guides/deploy/)将博客部署至 Vercel, Netlify, GitHub Pages 等。**
+- **Cloudflare Pages 完整部署教程**: 查看 [DEPLOYMENT.md](./DEPLOYMENT.md) 获取详细的 Cloudflare Pages 部署指南
 
 ## 📖 配置说明
 
@@ -137,6 +148,8 @@ lang: jp      # 仅当文章语言与 `config.ts` 中的网站语言不同时需
 
 - 感谢原始 [Fuwari](https://github.com/saicaca/fuwari) 模板
 - 感谢基于Fuwari二次开发的[Mizuki](https://github.com/matsuzaka-yuki/Mizuki) 模板
+- 本项目基于 [Firefly](https://github.com/CuteLeaf/Firefly) 进行个性化配置和部署优化
+- 查看本项目的定制版本: [johntime2005/blog](https://github.com/johntime2005/blog)
 - 感谢b站up[公公的日常](https://space.bilibili.com/3546750017080050)提供的Q版 流萤 看板娘切片数据模型
 - 使用 [Astro](https://astro.build) 和 [Tailwind CSS](https://tailwindcss.com) 构建
 - 图标来自 [Iconify](https://iconify.design/)

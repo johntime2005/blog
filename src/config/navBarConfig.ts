@@ -68,7 +68,15 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		name: "关于",
 		url: "/content/",
 		icon: "material-symbols:info",
-		children: [LinkPreset.About, ...otherChildren],
+		children: [
+			LinkPreset.About,
+			{
+				name: "使用教程",
+				url: "/about/tutorials/",
+				icon: "material-symbols:book",
+			},
+			...otherChildren,
+		],
 	});
 	return { links };
 };

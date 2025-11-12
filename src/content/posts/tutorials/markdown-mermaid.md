@@ -4,8 +4,9 @@ published: 2023-10-01
 pinned: false
 description: 一个包含 Mermaid 的 Markdown 博客文章简单示例。
 tags: [Markdown, 博客, Mermaid, Firefly]
-category: 文章示例
-draft: true
+category: 博客教程
+draft: false
+hideFromHome: true
 ---
 # Markdown 中 Mermaid 图表完整指南
 
