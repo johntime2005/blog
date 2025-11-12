@@ -235,6 +235,26 @@ const bannerOffset =
 			offset = offset - offset % 4;
 			document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
 		</script>
+
+		<!-- 初始化检测脚本 -->
+		<script is:inline define:vars={{ initialized: siteConfig.initialized }}>
+			// 检测是否需要显示初始化向导
+			(function() {
+				// 如果已经初始化，或者当前就在 setup 页面，则不需要重定向
+				if (initialized) {
+					return;
+				}
+
+				const currentPath = window.location.pathname;
+				const isSetupPage = currentPath.includes('/setup');
+
+				// 如果未初始化且不在 setup 页面，重定向到设置向导
+				if (!isSetupPage) {
+					window.location.href = '/setup/';
+				}
+			})();
+		</script>
+
 		<style define:vars={{
 			configHue,
 			'page-width': `${PAGE_WIDTH}rem`,

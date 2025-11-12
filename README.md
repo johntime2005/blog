@@ -37,8 +37,8 @@
 
 ### 环境要求
 
-- Node.js ≤ 22
-- pnpm ≤ 9
+- Node.js ≥ 18
+- pnpm ≥ 9
 
 ### 本地开发部署
 
@@ -52,13 +52,26 @@
    ```bash
    # 如果没有安装 pnpm，先安装
    npm install -g pnpm
-   
+
    # 安装项目依赖
    pnpm install
    ```
 
-3. **配置博客：**
-   - 编辑 `src/config/` 目录下的配置文件自定义博客设置
+3. **运行初始化脚本（首次配置必需）：**
+
+   **方法 1：Web 界面向导（推荐）**
+
+   部署后，首次访问你的博客网站，会自动跳转到初始化设置向导页面。按照向导填写信息，完成后下载配置文件并提交到 GitHub。
+
+   **方法 2：命令行脚本（本地开发）**
+
+   ```bash
+   pnpm init
+   ```
+
+   脚本会交互式地询问你的网站信息、个人信息和主题配置，自动完成个性化配置。
+
+   > 💡 **提示**: 查看 [INIT_GUIDE.md](./INIT_GUIDE.md) 获取详细的初始化指南
 
 4. **启动开发服务器：**
    ```bash
@@ -76,6 +89,8 @@
 - 拥有 Cloudflare 账号
 - 已登录 GitHub
 
+> ⚠️ **重要**: 部署后请立即运行 `pnpm init` 配置你的个性化信息！详见 [INIT_GUIDE.md](./INIT_GUIDE.md)
+
 #### 其他平台部署
 
 - **参考[官方指南](https://docs.astro.build/zh-cn/guides/deploy/)将博客部署至 Vercel, Netlify, GitHub Pages 等。**
@@ -83,7 +98,9 @@
 
 ## 📖 配置说明
 
-> 📚 **详细配置文档**: 查看 [Firefly使用文档](https://docs-firefly.cuteleaf.cn/) 获取完整的配置指南
+> 📚 **快速配置指南**: 查看 [INIT_GUIDE.md](./INIT_GUIDE.md) 获取详细的初始化和配置步骤
+> 📚 **完整配置文档**: 查看 [Firefly使用文档](https://docs-firefly.cuteleaf.cn/) 获取完整的配置指南
+> 📚 **AI 开发文档**: 查看 [CLAUDE.md](./CLAUDE.md) 获取项目架构和开发指南
 
 ### 配置文件结构
 
@@ -132,6 +149,7 @@ lang: jp      # 仅当文章语言与 `config.ts` 中的网站语言不同时需
 | Command                           | Action                            |
 |:----------------------------------|:----------------------------------|
 | `pnpm install` 并 `pnpm add sharp` | 安装依赖                              |
+| `pnpm init`                       | **运行初始化脚本配置个性化信息（首次使用必需）**      |
 | `pnpm dev`                        | 在 `localhost:4321` 启动本地开发服务器      |
 | `pnpm build`                      | 构建网站至 `./dist/`                   |
 | `pnpm preview`                    | 本地预览已构建的网站                        |

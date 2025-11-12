@@ -5,6 +5,10 @@ import { fontConfig } from "./fontConfig";
 const SITE_LANG = "zh_CN"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
 
 export const siteConfig: SiteConfig = {
+	// ⚠️ 重要：首次部署后请运行初始化向导或手动设置为 true
+	// 设置为 false 时会自动跳转到 /setup/ 初始化页面
+	initialized: true, // 当前网站已配置，保持 true；新部署时改为 false
+
 	title: "johntime 的博客",
 	subtitle: "记录生活，分享技术",
 	description:

@@ -12,10 +12,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # environment variables
 .env
-.env.production
+.env.*
+!.env.example
 
 # macOS-specific files
 .DS_Store
@@ -29,6 +31,7 @@ yarn.lock
 # ide
 .idea
 *.iml
+.vscode/settings.json
 
 # docs
 Docs-Firefly/
@@ -40,3 +43,42 @@ node_modules/
 .wrangler/
 .spec-workflow/
 .serena/
+
+# ====== 安全防护规则 ======
+# 数据库文件 (防止密钥泄露)
+*.sql
+*.sql.gz
+*.sql.zip
+*.db
+*.sqlite
+*.sqlite3
+
+# 备份文件
+*.bak
+*.backup
+*.old
+*~
+*.swp
+*.swo
+
+# 密钥和证书文件
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+id_rsa*
+*.pub
+
+# 云服务配置
+.aws/
+.azure/
+.gcloud/
+credentials.json
+service-account.json
+
+# 其他敏感文件
+secrets/
+.secrets
+.npmrc

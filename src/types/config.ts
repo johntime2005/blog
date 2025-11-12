@@ -5,6 +5,7 @@ import type {
 } from "../constants/constants";
 
 export type SiteConfig = {
+	initialized: boolean; // 是否已完成初始化配置（首次部署时为 false）
 	title: string;
 	subtitle: string;
 	description?: string; // 网站描述，用于生成 <meta name="description">
