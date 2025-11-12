@@ -24,14 +24,6 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "suspicious": {
-        "noExplicitAny": "off",
-        "noControlCharactersInRegex": "off",
-        "useIterableCallbackReturn": "off"
-      },
-      "complexity": {
-        "noBannedTypes": "off"
-      },
       "style": {
         "noParameterAssign": "error",
         "useAsConstAssertion": "error",
