@@ -106,6 +106,7 @@ export const zh_TW: Translation = {
   // 番組數據更新
   [Key.bangumiLastUpdated]: "數據更新於",
   [Key.bangumiUpdatedAt]: "構建時間",
+  [Key.bangumiDataStatic]: "靜態數據",
   
   // 動漫狀態
   [Key.animeStatusAll]: "全部",
@@ -210,4 +211,36 @@ export const zh_TW: Translation = {
   [Key.sponsorGoTo]: "前往贊助",
   [Key.sponsorButton]: "贊助支持",
   [Key.sponsorButtonText]: "如果這篇文章對你有幫助，歡迎贊助支持！",
+
+  // 站點統計
+  [Key.siteStats]: "站點統計",
+  [Key.siteStatsPostCount]: "文章",
+  [Key.siteStatsCategoryCount]: "分類",
+  [Key.siteStatsTagCount]: "標籤",
+  [Key.siteStatsTotalWords]: "總字數",
+  [Key.siteStatsRunningDays]: "運行時長",
+  [Key.siteStatsLastUpdate]: "最後活動",
+  [Key.siteStatsDaysAgo]: "{days} 天前",
+  [Key.siteStatsDays]: "{days} 天",
+
+  // 日曆組件
+  [Key.calendarSunday]: "日",
+  [Key.calendarMonday]: "一",
+  [Key.calendarTuesday]: "二",
+  [Key.calendarWednesday]: "三",
+  [Key.calendarThursday]: "四",
+  [Key.calendarFriday]: "五",
+  [Key.calendarSaturday]: "六",
+  [Key.calendarJanuary]: "1月",
+  [Key.calendarFebruary]: "2月",
+  [Key.calendarMarch]: "3月",
+  [Key.calendarApril]: "4月",
+  [Key.calendarMay]: "5月",
+  [Key.calendarJune]: "6月",
+  [Key.calendarJuly]: "7月",
+  [Key.calendarAugust]: "8月",
+  [Key.calendarSeptember]: "9月",
+  [Key.calendarOctober]: "10月",
+  [Key.calendarNovember]: "11月",
+  [Key.calendarDecember]: "12月",
 };

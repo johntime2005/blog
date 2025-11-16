@@ -11,6 +11,7 @@ export const siteConfig: SiteConfig = {
 
 	title: "johntime 的博客",
 	subtitle: "记录生活，分享技术",
+	site_url: "https://blog.johntime.top",
 	description:
 		"johntime 的个人博客，记录学习笔记、技术分享、生活随笔。内容涵盖服务器搭建、开源项目、旅行记录等。",
 	keywords: ["johntime", "个人博客", "技术博客", "开源", "旅行", "生活记录"],
@@ -43,6 +44,9 @@ export const siteConfig: SiteConfig = {
 		alt: "🍀",
 	},
 
+	// 站点开始日期，用于统计运行天数
+	siteStartDate: "2025-01-01", // 请修改为你的站点实际开始日期，格式：YYYY-MM-DD
+
 	// 追番配置
 	bangumi: {
 		userId: "1176159", // 在此处设置你的Bangumi用户ID
@@ -54,9 +58,14 @@ export const siteConfig: SiteConfig = {
 	// OpenGraph图片功能,注意开启后要渲染很长时间，不建议本地调试的时候开启
 	generateOgImages: false,
 
-	// 页面开关配置 - 控制特定页面的访问权限
+	// anime和bangumi都是来源bangumi的数据，请配置bangumi.userId
+	// anime是动态请求获取数据，所以是实时数据，目前缺点是需要手动F5刷新一次才加载数据
+	// bangumi的数据为编译时获取的，所以不是实时数据
 	pages: {
 		anime: true, // 追番页面开关，设为false时访问/anime/会返回404
+		sponsor: true, // 赞助页面开关
+		guestbook: true, // 留言板页面开关，需要配置评论系统
+		bangumi: true, // 番组计划页面开关，含追番和游戏
 		projects: true, // 项目展示页面开关，设为false时访问/projects/会返回404
 		timeline: true, // 时间线页面开关，设为false时访问/timeline/会返回404
 		skills: true, // 技能页面开关，设为false时访问/skills/会返回404
@@ -65,6 +74,7 @@ export const siteConfig: SiteConfig = {
 	// 文章列表布局配置
 	postListLayout: {
 		// 默认布局模式："list" 列表模式（单列布局），"grid" 网格模式（双列布局）
+		// 如果sidebarConfig.ts中侧边栏配置启用了"both"双侧边栏，则无法使用文章列表"grid"网格（双列）布局
 		defaultMode: "list",
 		// 是否允许用户切换布局
 		allowSwitch: true,

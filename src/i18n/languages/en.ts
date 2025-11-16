@@ -104,6 +104,7 @@ export const en: Translation = {
   // Bangumi Data Update
   [Key.bangumiLastUpdated]: "Data updated at",
   [Key.bangumiUpdatedAt]: "Build time",
+  [Key.bangumiDataStatic]: "Static data",
   
   // Anime Status
   [Key.animeStatusAll]: "All",
@@ -213,4 +214,36 @@ export const en: Translation = {
   [Key.sponsorGoTo]: "Go to Sponsor",
   [Key.sponsorButton]: "Support",
   [Key.sponsorButtonText]: "If this article helped you, welcome to support!",
+
+  // Site Statistics
+  [Key.siteStats]: "Site Statistics",
+  [Key.siteStatsPostCount]: "Posts",
+  [Key.siteStatsCategoryCount]: "Categories",
+  [Key.siteStatsTagCount]: "Tags",
+  [Key.siteStatsTotalWords]: "Total Words",
+  [Key.siteStatsRunningDays]: "Running Days",
+  [Key.siteStatsLastUpdate]: "Last Activity",
+  [Key.siteStatsDaysAgo]: "{days} days ago",
+  [Key.siteStatsDays]: "{days} days",
+
+  // Calendar Component
+  [Key.calendarSunday]: "Sun",
+  [Key.calendarMonday]: "Mon",
+  [Key.calendarTuesday]: "Tue",
+  [Key.calendarWednesday]: "Wed",
+  [Key.calendarThursday]: "Thu",
+  [Key.calendarFriday]: "Fri",
+  [Key.calendarSaturday]: "Sat",
+  [Key.calendarJanuary]: "Jan",
+  [Key.calendarFebruary]: "Feb",
+  [Key.calendarMarch]: "Mar",
+  [Key.calendarApril]: "Apr",
+  [Key.calendarMay]: "May",
+  [Key.calendarJune]: "Jun",
+  [Key.calendarJuly]: "Jul",
+  [Key.calendarAugust]: "Aug",
+  [Key.calendarSeptember]: "Sep",
+  [Key.calendarOctober]: "Oct",
+  [Key.calendarNovember]: "Nov",
+  [Key.calendarDecember]: "Dec",
 };

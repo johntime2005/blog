@@ -105,6 +105,7 @@ export const ja: Translation = {
   // バングミデータ更新
   [Key.bangumiLastUpdated]: "データ更新",
   [Key.bangumiUpdatedAt]: "ビルド時間",
+  [Key.bangumiDataStatic]: "静的データ",
   
   // アニメ状態
   [Key.animeStatusAll]: "すべて",
@@ -212,4 +213,36 @@ export const ja: Translation = {
   [Key.sponsorGoTo]: "スポンサーへ",
   [Key.sponsorButton]: "サポート",
   [Key.sponsorButtonText]: "この記事が役に立ったなら、サポートをお願いします！",
+
+  // サイト統計
+  [Key.siteStats]: "サイト統計",
+  [Key.siteStatsPostCount]: "記事",
+  [Key.siteStatsCategoryCount]: "カテゴリー",
+  [Key.siteStatsTagCount]: "タグ",
+  [Key.siteStatsTotalWords]: "総文字数",
+  [Key.siteStatsRunningDays]: "運用日数",
+  [Key.siteStatsLastUpdate]: "最終活動",
+  [Key.siteStatsDaysAgo]: "{days} 日前",
+  [Key.siteStatsDays]: "{days} 日",
+
+  // カレンダーコンポーネント
+  [Key.calendarSunday]: "日",
+  [Key.calendarMonday]: "月",
+  [Key.calendarTuesday]: "火",
+  [Key.calendarWednesday]: "水",
+  [Key.calendarThursday]: "木",
+  [Key.calendarFriday]: "金",
+  [Key.calendarSaturday]: "土",
+  [Key.calendarJanuary]: "1月",
+  [Key.calendarFebruary]: "2月",
+  [Key.calendarMarch]: "3月",
+  [Key.calendarApril]: "4月",
+  [Key.calendarMay]: "5月",
+  [Key.calendarJune]: "6月",
+  [Key.calendarJuly]: "7月",
+  [Key.calendarAugust]: "8月",
+  [Key.calendarSeptember]: "9月",
+  [Key.calendarOctober]: "10月",
+  [Key.calendarNovember]: "11月",
+  [Key.calendarDecember]: "12月",
 };

@@ -30,7 +30,7 @@ import cloudflare from "@astrojs/cloudflare";
 import searchIndexer from "./src/integrations/searchIndex.mts";
 // https://astro.build/config
 export default defineConfig({
-	site: "https://blog.johntime.top/",
+	site: siteConfig.site_url,
 
 	base: "/",
 	trailingSlash: "always",
@@ -45,9 +45,9 @@ export default defineConfig({
 			// the default value `transition-` cause transition delay
 			// when the Tailwind class `transition-all` is used
 			containers: ["main"],
-			smoothScrolling: true,
+			smoothScrolling: false,
 			cache: true,
-			preload: true,
+			preload: false,
 			accessibility: true,
 			updateHead: true,
 			updateBodyClass: false,
@@ -80,7 +80,7 @@ export default defineConfig({
 				pluginCustomCopyButton(),
 			],
 			defaultProps: {
-				wrap: true,
+				wrap: false,
 				overridesByLang: {
 					shellsession: {
 						showLineNumbers: false,
