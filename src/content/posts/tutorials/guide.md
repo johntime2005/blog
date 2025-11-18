@@ -7,6 +7,7 @@ image: "./cover.webp"
 tags: ["Firefly", "博客", "Markdown", "使用指南"]
 category: 博客指南
 draft: false
+hideFromHome: true
 ---
 
 

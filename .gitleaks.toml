@@ -63,6 +63,8 @@ regexes = [
     '''<YOUR_API_KEY>''',
     '''process\.env\.[A-Z_]+''',
     '''import\.meta\.env\.[A-Z_]+''',
+    '''managing-your-repositorys-settings-and-f''',
+    '''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn''',
 ]
 
 paths = [

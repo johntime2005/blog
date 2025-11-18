@@ -6,6 +6,11 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
   const links: (NavBarLink | LinkPreset)[] = [
     LinkPreset.Home,
     LinkPreset.Archive,
+    {
+      name: "教程",
+      url: "/tutorials/",
+      icon: "material-symbols:book-2",
+    },
   ];
 
   // 支持自定义导航栏链接,并且支持多级菜单

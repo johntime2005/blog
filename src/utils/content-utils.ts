@@ -2,6 +2,63 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils";
+import { shouldShowCategoryInHome } from "@/config/categoryConfig";
+
+/**
+ * 检查文章是否应该被显示
+ * @param post 文章对象
+ * @param context 上下文：home | archive | search | widget | detail
+ * @returns 是否显示
+ */
+export function shouldShowPost(
+	post: CollectionEntry<"posts">,
+	context: "home" | "archive" | "search" | "widget" | "detail" = "detail",
+): boolean {
+	const { data } = post;
+
+	// 生产环境下过滤草稿
+	if (import.meta.env.PROD && data.draft === true) {
+		return false;
+	}
+
+	// 根据可见性级别过滤
+	if (data.visibility === "private") {
+		return false; // private 完全不显示
+	}
+
+	if (data.visibility === "unlisted" && context !== "detail") {
+		return false; // unlisted 只在详情页显示
+	}
+
+	// 根据访问级别过滤（未来可以扩展为基于用户权限）
+	if (data.accessLevel !== "public" && context !== "detail") {
+		return false; // 非公开内容只在详情页显示（如果用户有权限）
+	}
+
+	// 根据上下文过滤
+	switch (context) {
+		case "home":
+			// 首页过滤：检查 hideFromHome 标志和类别配置
+			if (data.hideFromHome) return false;
+
+			// 检查类别是否应该在主页显示
+			if (!shouldShowCategoryInHome(data.category)) {
+				return false;
+			}
+
+			return true;
+		case "archive":
+			return !data.hideFromArchive;
+		case "search":
+			return !data.hideFromSearch;
+		case "widget":
+			return data.showInWidget !== false;
+		case "detail":
+			return true; // 详情页不过滤
+		default:
+			return true;
+	}
+}
 
 // // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
@@ -10,11 +67,28 @@ async function getRawSortedPosts() {
 	});
 
 	const sorted = allBlogPosts.sort((a, b) => {
-		// 首先按置顶状态排序，置顶文章在前
+		// 1. 首先按自定义排序优先级（如果设置）
+		if (
+			a.data.customOrder !== undefined &&
+			b.data.customOrder !== undefined
+		) {
+			return a.data.customOrder - b.data.customOrder;
+		}
+		if (a.data.customOrder !== undefined) return -1;
+		if (b.data.customOrder !== undefined) return 1;
+
+		// 2. 然后按推荐级别排序（级别越高越靠前）
+		const aFeatured = a.data.featuredLevel || 0;
+		const bFeatured = b.data.featuredLevel || 0;
+		if (aFeatured !== bFeatured) {
+			return bFeatured - aFeatured;
+		}
+
+		// 3. 然后按置顶状态排序，置顶文章在前
 		if (a.data.pinned && !b.data.pinned) return -1;
 		if (!a.data.pinned && b.data.pinned) return 1;
 
-		// 如果置顶状态相同，则按发布日期排序
+		// 4. 最后按发布日期排序
 		const dateA = new Date(a.data.published);
 		const dateB = new Date(b.data.published);
 		return dateA > dateB ? -1 : 1;
@@ -36,6 +110,46 @@ export async function getSortedPosts() {
 
 	return sorted;
 }
+
+/**
+ * 获取首页显示的文章列表
+ */
+export async function getHomePagePosts() {
+	const sorted = await getSortedPosts();
+	return sorted.filter((post) => shouldShowPost(post, "home"));
+}
+
+/**
+ * 获取归档页显示的文章列表
+ */
+export async function getArchivePagePosts() {
+	const sorted = await getSortedPosts();
+	return sorted.filter((post) => shouldShowPost(post, "archive"));
+}
+
+/**
+ * 获取搜索结果显示的文章列表
+ */
+export async function getSearchablePosts() {
+	const sorted = await getSortedPosts();
+	return sorted.filter((post) => shouldShowPost(post, "search"));
+}
+
+/**
+ * 获取侧边栏组件显示的文章列表
+ */
+export async function getWidgetPosts() {
+	const sorted = await getSortedPosts();
+	return sorted.filter((post) => shouldShowPost(post, "widget"));
+}
+
+/**
+ * 获取推荐文章（featuredLevel > 0）
+ */
+export async function getFeaturedPosts(minLevel = 1) {
+	const posts = await getWidgetPosts();
+	return posts.filter((post) => (post.data.featuredLevel || 0) >= minLevel);
+}
 export type PostForList = {
 	slug: string;
 	data: CollectionEntry<"posts">["data"];
@@ -50,6 +164,17 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 	}));
 
 	return sortedPostsList;
+}
+
+/**
+ * 获取归档页显示的文章列表（PostForList 格式）
+ */
+export async function getArchivePagePostsList(): Promise<PostForList[]> {
+	const posts = await getArchivePagePosts();
+	return posts.map((post) => ({
+		slug: post.slug,
+		data: post.data,
+	}));
 }
 export type Tag = {
 	name: string;

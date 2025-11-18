@@ -233,12 +233,34 @@ tags: [标签1, 标签2]         # 标签数组
 category: 分类名             # 分类（单个）
 lang: zh_CN                 # 文章语言（默认继承站点语言）
 pinned: false               # 是否置顶
-hideFromHome: false         # 是否在首页隐藏
 encrypted: false            # 是否加密（需密码访问）
 password: ""                # 加密密码
 series: 系列名               # 系列文章
+
+# 高级可见性控制
+visibility: "public"        # 可见性级别：public | unlisted | private
+hideFromHome: false         # 从首页隐藏
+hideFromArchive: false      # 从归档页隐藏
+hideFromSearch: false       # 从搜索结果隐藏
+showInWidget: true          # 是否在侧边栏组件显示
+
+# 排序与推荐
+customOrder: 1              # 自定义排序优先级（数字越小越靠前）
+featuredLevel: 0            # 推荐级别 (0-5)
+
+# 布局控制
+postLayout: "default"       # 布局模板：default | wide | fullscreen | no-sidebar
+
+# SEO 精细控制
+seoNoIndex: false           # 禁止搜索引擎索引
+seoNoFollow: false          # 禁止搜索引擎跟踪链接
+
+# 访问控制
+accessLevel: "public"       # 访问级别：public | members-only | restricted
 ---
 ```
+
+> **详细文档**：请查阅 [ADVANCED_POST_MANAGEMENT.md](./ADVANCED_POST_MANAGEMENT.md) 获取完整的高级文章管理功能指南。
 
 ### 内容查询示例
 

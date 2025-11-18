@@ -1,0 +1,92 @@
+---
+import { getCollection } from "astro:content";
+import PostCard from "@/components/PostCard.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+// 获取所有教程文章 (在 tutorials 目录下或者 category 包含"教程"的文章)
+const allPosts = await getCollection('posts', ({ data }) => {
+  return !data.draft;
+});
+
+// 过滤出教程文章:在 tutorials 目录下的文章
+const tutorialPosts = allPosts.filter(post => {
+  // 检查文章路径是否在 tutorials 目录下
+  return post.id.startsWith('tutorials/');
+});
+
+// 按发布日期排序
+const sortedTutorials = tutorialPosts.sort((a, b) => {
+  return b.data.published.valueOf() - a.data.published.valueOf();
+});
+
+const title = "教程";
+const subtitle = "博客主题使用教程和技术文章";
+---
+
+<MainGridLayout title={title} description={subtitle}>
+  <div
+    class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32"
+  >
+    <div class="card-base z-10 px-9 py-6 relative w-full">
+      <!-- 页面标题 -->
+      <div class="flex flex-col items-start justify-center mb-8">
+        <h1 class="text-4xl font-bold text-black/90 dark:text-white/90 mb-2">
+          {title}
+        </h1>
+        <p class="text-lg text-black/60 dark:text-white/60">
+          {subtitle}
+        </p>
+        <div class="mt-4 text-sm text-black/50 dark:text-white/50">
+          共 {sortedTutorials.length} 篇教程
+        </div>
+      </div>
+
+      <!-- 教程文章列表 -->
+      <div class="space-y-6">
+        {sortedTutorials.map((post) => (
+          <div class="onload-animation">
+            <PostCard
+              entry={post}
+              title={post.data.title}
+              url={`/posts/${post.slug}`}
+              published={post.data.published}
+              updated={post.data.updated}
+              tags={post.data.tags}
+              category={post.data.category}
+              image={post.data.image}
+              description={post.data.description}
+              draft={post.data.draft}
+              pinned={post.data.pinned}
+            />
+          </div>
+        ))}
+      </div>
+
+      <!-- 如果没有教程文章 -->
+      {sortedTutorials.length === 0 && (
+        <div class="text-center py-12 text-black/60 dark:text-white/60">
+          <p class="text-lg">暂无教程文章</p>
+        </div>
+      )}
+    </div>
+  </div>
+</MainGridLayout>
+
+<style>
+  .onload-animation {
+    animation: fade-in-up 0.5s ease-out;
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

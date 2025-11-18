@@ -6,6 +6,7 @@ description: 详细记录如何将基于 Astro 和 Firefly 主题的个人博客
 tags: [Astro, Cloudflare, 部署, CI/CD, Firefly, 博客]
 category: 博客教程
 draft: false
+hideFromHome: true
 ---
 
 ## 📖 前言

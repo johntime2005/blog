@@ -6,6 +6,7 @@ description: Firefly 是一款基于 Astro 框架和 Fuwari 模板开发的清�
 tags: [Markdown, Firefly, 博客, 主题, 模板, 开源]
 category: 文章示例
 draft: false
+hideFromHome: true
 ---
 
 ## 🌟 项目概述
@@ -27,7 +28,7 @@ draft: false
 
 ::github{repo="saicaca/fuwari"}
 
-![Firefly](./images/1.webp)
+<!-- ![Firefly](./images/1.webp) -->
 
 
 ## 🚀 技术架构
