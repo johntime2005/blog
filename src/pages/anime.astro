@@ -7,7 +7,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
 // 检查页面是否启用
 if (!siteConfig.pages.anime) {
-  return Astro.redirect("/404/");
+	return Astro.redirect("/404/");
 }
 
 // 服务器端只传递配置信息到客户端
@@ -15,11 +15,36 @@ const BANGUMI_USER_ID = siteConfig.bangumi?.userId || "your-user-id";
 
 // 收藏状态映射
 const COLLECTION_TYPES = {
-  1: { key: "wish", name: i18n(I18nKey.animeStatusWish), icon: "material-symbols:schedule", color: "amber" },
-  2: { key: "done", name: i18n(I18nKey.animeStatusDone), icon: "material-symbols:check-circle", color: "blue" },
-  3: { key: "doing", name: i18n(I18nKey.animeStatusDoing), icon: "material-symbols:play-circle", color: "green" },
-  4: { key: "onhold", name: i18n(I18nKey.animeStatusOnhold), icon: "material-symbols:pause-circle", color: "orange" },
-  5: { key: "dropped", name: i18n(I18nKey.animeStatusDropped), icon: "material-symbols:cancel", color: "red" },
+	1: {
+		key: "wish",
+		name: i18n(I18nKey.animeStatusWish),
+		icon: "material-symbols:schedule",
+		color: "amber",
+	},
+	2: {
+		key: "done",
+		name: i18n(I18nKey.animeStatusDone),
+		icon: "material-symbols:check-circle",
+		color: "blue",
+	},
+	3: {
+		key: "doing",
+		name: i18n(I18nKey.animeStatusDoing),
+		icon: "material-symbols:play-circle",
+		color: "green",
+	},
+	4: {
+		key: "onhold",
+		name: i18n(I18nKey.animeStatusOnhold),
+		icon: "material-symbols:pause-circle",
+		color: "orange",
+	},
+	5: {
+		key: "dropped",
+		name: i18n(I18nKey.animeStatusDropped),
+		icon: "material-symbols:cancel",
+		color: "red",
+	},
 } as const;
 ---
 

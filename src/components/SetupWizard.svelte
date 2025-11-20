@@ -1,161 +1,161 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type {
-		SetupData,
-		SiteInfoData,
-		ProfileInfoData,
-		ThemeConfigData,
-		ValidationErrors
-	} from '../types/setup';
+import { onMount } from "svelte";
+import type {
+	ProfileInfoData,
+	SetupData,
+	SiteInfoData,
+	ThemeConfigData,
+	ValidationErrors,
+} from "../types/setup";
 
-	let currentStep = 1;
-	let isLoading = false;
-	let errorMessage = '';
+let currentStep = 1;
+let isLoading = false;
+let errorMessage = "";
 
-	// 表单数据
-	let siteInfo: SiteInfoData = {
-		siteUrl: 'https://demo-firefly.netlify.app/',
-		title: '',
-		subtitle: '',
-		description: '',
-		keywords: ''
-	};
+// 表单数据
+let siteInfo: SiteInfoData = {
+	siteUrl: "https://demo-firefly.netlify.app/",
+	title: "",
+	subtitle: "",
+	description: "",
+	keywords: "",
+};
 
-	let profileInfo: ProfileInfoData = {
-		name: '',
-		bio: '',
-		githubUsername: '',
-		bilibiliUid: '',
-		bangumiUserId: ''
-	};
+let profileInfo: ProfileInfoData = {
+	name: "",
+	bio: "",
+	githubUsername: "",
+	bilibiliUid: "",
+	bangumiUserId: "",
+};
 
-	let themeConfig: ThemeConfigData = {
-		themeHue: 155
-	};
+let themeConfig: ThemeConfigData = {
+	themeHue: 155,
+};
 
-	// 验证错误
-	let errors: ValidationErrors = {};
+// 验证错误
+let errors: ValidationErrors = {};
 
-	// 验证单个步骤
-	function validateStep(step: number): boolean {
+// 验证单个步骤
+function validateStep(step: number): boolean {
+	errors = {};
+
+	if (step === 1) {
+		// 验证网站信息
+		if (!siteInfo.siteUrl.trim()) {
+			errors.siteUrl = "请输入网站 URL";
+		} else if (!/^https?:\/\/.+/.test(siteInfo.siteUrl)) {
+			errors.siteUrl = "URL 格式不正确（需要以 http:// 或 https:// 开头）";
+		}
+
+		if (!siteInfo.title.trim()) {
+			errors.title = "请输入网站标题";
+		}
+
+		if (!siteInfo.subtitle.trim()) {
+			errors.subtitle = "请输入网站副标题";
+		}
+
+		if (!siteInfo.description.trim()) {
+			errors.description = "请输入网站描述";
+		}
+	} else if (step === 2) {
+		// 验证个人信息
+		if (!profileInfo.name.trim()) {
+			errors.name = "请输入你的名字";
+		}
+
+		if (!profileInfo.bio.trim()) {
+			errors.bio = "请输入个人简介";
+		}
+	} else if (step === 3) {
+		// 验证主题配置
+		if (themeConfig.themeHue < 0 || themeConfig.themeHue > 360) {
+			errors.themeHue = "主题色相需要在 0-360 之间";
+		}
+	}
+
+	return Object.keys(errors).length === 0;
+}
+
+// 下一步
+function nextStep() {
+	if (validateStep(currentStep)) {
+		if (currentStep < 3) {
+			currentStep++;
+		}
+	}
+}
+
+// 上一步
+function prevStep() {
+	if (currentStep > 1) {
+		currentStep--;
 		errors = {};
+	}
+}
 
-		if (step === 1) {
-			// 验证网站信息
-			if (!siteInfo.siteUrl.trim()) {
-				errors.siteUrl = '请输入网站 URL';
-			} else if (!/^https?:\/\/.+/.test(siteInfo.siteUrl)) {
-				errors.siteUrl = 'URL 格式不正确（需要以 http:// 或 https:// 开头）';
-			}
-
-			if (!siteInfo.title.trim()) {
-				errors.title = '请输入网站标题';
-			}
-
-			if (!siteInfo.subtitle.trim()) {
-				errors.subtitle = '请输入网站副标题';
-			}
-
-			if (!siteInfo.description.trim()) {
-				errors.description = '请输入网站描述';
-			}
-		} else if (step === 2) {
-			// 验证个人信息
-			if (!profileInfo.name.trim()) {
-				errors.name = '请输入你的名字';
-			}
-
-			if (!profileInfo.bio.trim()) {
-				errors.bio = '请输入个人简介';
-			}
-		} else if (step === 3) {
-			// 验证主题配置
-			if (themeConfig.themeHue < 0 || themeConfig.themeHue > 360) {
-				errors.themeHue = '主题色相需要在 0-360 之间';
-			}
-		}
-
-		return Object.keys(errors).length === 0;
+// 提交配置
+async function submitConfig() {
+	if (!validateStep(3)) {
+		return;
 	}
 
-	// 下一步
-	function nextStep() {
-		if (validateStep(currentStep)) {
-			if (currentStep < 3) {
-				currentStep++;
-			}
+	isLoading = true;
+	errorMessage = "";
+
+	try {
+		// 确保 URL 以斜杠结尾
+		const normalizedUrl = siteInfo.siteUrl.endsWith("/")
+			? siteInfo.siteUrl
+			: `${siteInfo.siteUrl}/`;
+
+		const setupData: SetupData = {
+			siteInfo: {
+				...siteInfo,
+				siteUrl: normalizedUrl,
+			},
+			profileInfo,
+			themeConfig,
+		};
+
+		const response = await fetch("/api/generate-config", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(setupData),
+		});
+
+		if (!response.ok) {
+			throw new Error("生成配置文件失败");
 		}
+
+		// 获取 blob 数据
+		const blob = await response.blob();
+
+		// 创建下载链接
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "firefly-config.zip";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		window.URL.revokeObjectURL(url);
+
+		// 跳转到完成页面
+		window.location.href = "/setup/complete/";
+	} catch (error) {
+		console.error("提交配置失败:", error);
+		errorMessage = error instanceof Error ? error.message : "提交失败，请重试";
+	} finally {
+		isLoading = false;
 	}
+}
 
-	// 上一步
-	function prevStep() {
-		if (currentStep > 1) {
-			currentStep--;
-			errors = {};
-		}
-	}
-
-	// 提交配置
-	async function submitConfig() {
-		if (!validateStep(3)) {
-			return;
-		}
-
-		isLoading = true;
-		errorMessage = '';
-
-		try {
-			// 确保 URL 以斜杠结尾
-			const normalizedUrl = siteInfo.siteUrl.endsWith('/')
-				? siteInfo.siteUrl
-				: `${siteInfo.siteUrl}/`;
-
-			const setupData: SetupData = {
-				siteInfo: {
-					...siteInfo,
-					siteUrl: normalizedUrl
-				},
-				profileInfo,
-				themeConfig
-			};
-
-			const response = await fetch('/api/generate-config', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(setupData)
-			});
-
-			if (!response.ok) {
-				throw new Error('生成配置文件失败');
-			}
-
-			// 获取 blob 数据
-			const blob = await response.blob();
-
-			// 创建下载链接
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'firefly-config.zip';
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			window.URL.revokeObjectURL(url);
-
-			// 跳转到完成页面
-			window.location.href = '/setup/complete/';
-		} catch (error) {
-			console.error('提交配置失败:', error);
-			errorMessage = error instanceof Error ? error.message : '提交失败，请重试';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	// 主题色预览
-	$: themeColorStyle = `hsl(${themeConfig.themeHue}, 60%, 60%)`;
+// 主题色预览
+$: themeColorStyle = `hsl(${themeConfig.themeHue}, 60%, 60%)`;
 </script>
 
 <div class="setup-wizard max-w-3xl mx-auto p-6">

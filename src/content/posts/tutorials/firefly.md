@@ -28,8 +28,6 @@ hideFromHome: true
 
 ::github{repo="saicaca/fuwari"}
 
-<!-- ![Firefly](./images/1.webp) -->
-
 
 ## 🚀 技术架构
 

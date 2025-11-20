@@ -1,10 +1,18 @@
-// OAuth 授权端点
+// OAuth 授权端点 - 使用加密安全的 state 参数
+import {
+	generateSecureToken,
+	getSecureCookieOptions,
+	hmacSha256,
+	securityHeaders,
+} from "../../utils/security";
+
 export const prerender = false;
 
-export async function GET({ request, redirect, locals }) {
+export async function GET({ request, redirect, locals, cookies }) {
 	try {
 		const runtime = locals.runtime as any;
 		const clientId = runtime?.env?.GITHUB_CLIENT_ID;
+		const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
 
 		// 详细的环境变量检查
 		if (!clientId) {
@@ -22,7 +30,10 @@ export async function GET({ request, redirect, locals }) {
 				),
 				{
 					status: 500,
-					headers: { "Content-Type": "text/html; charset=utf-8" },
+					headers: {
+						"Content-Type": "text/html; charset=utf-8",
+						...securityHeaders,
+					},
 				},
 			);
 		}
@@ -30,24 +41,41 @@ export async function GET({ request, redirect, locals }) {
 		const url = new URL(request.url);
 		const authUrl = new URL("https://github.com/login/oauth/authorize");
 
+		// 生成加密安全的随机 state（32字节 = 256位熵）
+		const stateRandom = generateSecureToken(32);
+		const timestamp = Date.now().toString();
+		const stateData = `${timestamp}.${stateRandom}`;
+
+		// 使用 HMAC-SHA256 签名 state，防止篡改
+		const stateSignature = clientSecret
+			? await hmacSha256(clientSecret, stateData)
+			: stateRandom;
+
+		const state = `${stateData}.${stateSignature}`;
+
+		// 将 state 存储到 httpOnly cookie 中（10分钟有效期）
+		cookies.set("oauth_state", state, getSecureCookieOptions(600));
+
 		authUrl.searchParams.set("client_id", clientId);
 		authUrl.searchParams.set("redirect_uri", `${url.origin}/auth/callback`);
-		authUrl.searchParams.set("scope", "repo,user");
+		authUrl.searchParams.set("scope", "public_repo"); // 最小权限原则
+		authUrl.searchParams.set("state", state);
 
 		console.log("[OAuth] 重定向到 GitHub 授权页面");
 		return redirect(authUrl.toString(), 302);
 	} catch (error) {
 		console.error("[OAuth] 授权请求失败:", error);
 		return new Response(
-			buildErrorPage(
-				"授权失败",
-				"无法启动 GitHub 授权流程。",
-				["请刷新页面重试", "如果问题持续，请联系管理员"],
-				error instanceof Error ? error.message : String(error),
-			),
+			buildErrorPage("授权失败", "无法启动 GitHub 授权流程。", [
+				"请刷新页面重试",
+				"如果问题持续，请联系管理员",
+			]),
 			{
 				status: 500,
-				headers: { "Content-Type": "text/html; charset=utf-8" },
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
 			},
 		);
 	}
@@ -175,7 +203,11 @@ function buildErrorPage(
     `
 				: ""
 		}
-    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ""}
+    ${
+			detail
+				? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>`
+				: ""
+		}
     <div class="actions">
       <button class="primary" onclick="window.location.reload()">刷新重试</button>
       <a href="/admin" class="secondary">返回后台</a>

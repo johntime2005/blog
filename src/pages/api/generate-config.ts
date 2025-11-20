@@ -1,134 +1,261 @@
 import type { APIRoute } from "astro";
-import type { SetupData } from "../../types/setup";
 import JSZip from "jszip";
+import type { SetupData } from "../../types/setup";
+import {
+	escapeStringLiteral,
+	isValidUrl,
+	securityHeaders,
+	validateNumber,
+	validateOrigin,
+	validateString,
+} from "../../utils/security";
+
+// 请求大小限制（10KB）
+const MAX_REQUEST_SIZE = 10 * 1024;
 
 export const POST: APIRoute = async ({ request }) => {
 	try {
-		const data: SetupData = await request.json();
+		// 🔒 安全检查：请求大小限制
+		const contentLength = request.headers.get("content-length");
+		if (
+			contentLength &&
+			Number.parseInt(contentLength, 10) > MAX_REQUEST_SIZE
+		) {
+			return new Response(JSON.stringify({ error: "请求体过大" }), {
+				status: 413,
+				headers: { "Content-Type": "application/json", ...securityHeaders },
+			});
+		}
 
-		// 生成 siteConfig.ts 内容
+		// 🔒 安全检查：验证请求来源（严格同源检查）
+		const origin = request.headers.get("origin");
+		const host = request.headers.get("host");
+
+		if (!validateOrigin(origin, host)) {
+			console.error("[API] 拒绝跨域请求:", { origin, host });
+			return new Response(JSON.stringify({ error: "不允许的请求来源" }), {
+				status: 403,
+				headers: { "Content-Type": "application/json", ...securityHeaders },
+			});
+		}
+
+		// 🔒 安全检查：验证 Content-Type
+		const contentType = request.headers.get("content-type");
+		if (!contentType || contentType !== "application/json") {
+			return new Response(JSON.stringify({ error: "不支持的内容类型" }), {
+				status: 415,
+				headers: { "Content-Type": "application/json", ...securityHeaders },
+			});
+		}
+
+		let data: SetupData;
+		try {
+			data = await request.json();
+		} catch {
+			return new Response(JSON.stringify({ error: "无效的 JSON 格式" }), {
+				status: 400,
+				headers: { "Content-Type": "application/json", ...securityHeaders },
+			});
+		}
+
+		// 🔒 安全检查：验证输入数据
+		const validationError = validateSetupData(data);
+		if (validationError) {
+			return new Response(JSON.stringify({ error: validationError }), {
+				status: 400,
+				headers: { "Content-Type": "application/json", ...securityHeaders },
+			});
+		}
+
+		// 生成配置文件内容（使用安全转义）
 		const siteConfigContent = generateSiteConfig(data);
-
-		// 生成 profileConfig.ts 内容
 		const profileConfigContent = generateProfileConfig(data);
-
-		// 生成 astro.config.mjs 内容
 		const astroConfigContent = generateAstroConfig(data);
-
-		// 生成 robots.txt 内容
 		const robotsTxtContent = generateRobotsTxt(data);
-
-		// 生成 README 说明文件
 		const readmeContent = generateReadme(data);
 
 		// 使用 JSZip 打包
 		const zip = new JSZip();
-
-		// 创建目录结构
 		const configFolder = zip.folder("src/config");
 		const publicFolder = zip.folder("public");
 
-		// 添加文件
 		configFolder?.file("siteConfig.ts", siteConfigContent);
 		configFolder?.file("profileConfig.ts", profileConfigContent);
 		zip.file("astro.config.mjs", astroConfigContent);
 		publicFolder?.file("robots.txt", robotsTxtContent);
 		zip.file("README_SETUP.md", readmeContent);
 
-		// 生成 ZIP 文件
 		const zipBlob = await zip.generateAsync({ type: "blob" });
 
-		// 返回 ZIP 文件
 		return new Response(zipBlob, {
 			status: 200,
 			headers: {
 				"Content-Type": "application/zip",
 				"Content-Disposition": "attachment; filename=firefly-config.zip",
+				...securityHeaders,
 			},
 		});
 	} catch (error) {
 		console.error("生成配置文件失败:", error);
 		return new Response(JSON.stringify({ error: "生成配置文件失败" }), {
 			status: 500,
-			headers: {
-				"Content-Type": "application/json",
-			},
+			headers: { "Content-Type": "application/json", ...securityHeaders },
 		});
 	}
 };
 
-// 生成 siteConfig.ts 内容
+/**
+ * 验证设置数据
+ */
+function validateSetupData(data: SetupData): string | null {
+	// 验证 siteInfo
+	if (!data.siteInfo) {
+		return "缺少站点信息";
+	}
+
+	if (!isValidUrl(data.siteInfo.siteUrl)) {
+		return "无效的站点 URL";
+	}
+
+	if (!validateString(data.siteInfo.title, 1, 100)) {
+		return "站点标题无效（1-100字符）";
+	}
+
+	if (!validateString(data.siteInfo.subtitle, 1, 200)) {
+		return "站点副标题无效（1-200字符）";
+	}
+
+	if (!validateString(data.siteInfo.description, 1, 500)) {
+		return "站点描述无效（1-500字符）";
+	}
+
+	// 验证 profileInfo
+	if (!data.profileInfo) {
+		return "缺少个人资料信息";
+	}
+
+	if (!validateString(data.profileInfo.name, 1, 50)) {
+		return "名称无效（1-50字符）";
+	}
+
+	if (!validateString(data.profileInfo.bio, 1, 200)) {
+		return "简介无效（1-200字符）";
+	}
+
+	// 验证可选字段格式
+	if (data.profileInfo.githubUsername) {
+		// GitHub 用户名：字母数字和连字符，最长39字符
+		if (
+			!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(
+				data.profileInfo.githubUsername,
+			)
+		) {
+			return "无效的 GitHub 用户名格式";
+		}
+	}
+
+	if (data.profileInfo.bilibiliUid) {
+		// Bilibili UID：纯数字
+		if (!/^\d{1,15}$/.test(data.profileInfo.bilibiliUid)) {
+			return "无效的 Bilibili UID 格式";
+		}
+	}
+
+	if (data.profileInfo.bangumiUserId) {
+		// Bangumi 用户 ID：纯数字
+		if (!/^\d{1,10}$/.test(data.profileInfo.bangumiUserId)) {
+			return "无效的 Bangumi 用户 ID 格式";
+		}
+	}
+
+	// 验证 themeConfig
+	if (!data.themeConfig) {
+		return "缺少主题配置";
+	}
+
+	if (!validateNumber(data.themeConfig.themeHue, 0, 360)) {
+		return "主题色相值无效（0-360）";
+	}
+
+	return null;
+}
+
+/**
+ * 生成 siteConfig.ts 内容（使用安全转义）
+ */
 function generateSiteConfig(data: SetupData): string {
 	const { siteInfo, themeConfig } = data;
+
+	// 安全转义所有字符串
+	const title = escapeStringLiteral(siteInfo.title);
+	const subtitle = escapeStringLiteral(siteInfo.subtitle);
+	const description = escapeStringLiteral(siteInfo.description);
+	const bangumiUserId = escapeStringLiteral(
+		data.profileInfo.bangumiUserId || "",
+	);
+
+	// 处理关键词数组
 	const keywords = siteInfo.keywords
-		? siteInfo.keywords.split(",").map((k) => `"${k.trim()}"`)
+		? siteInfo.keywords
+				.split(",")
+				.map((k) => `"${escapeStringLiteral(k.trim())}"`)
 		: [];
 
 	return `import type { SiteConfig } from "../types/config";
 import { fontConfig } from "./fontConfig";
 
 // 定义站点语言
-const SITE_LANG = "zh_CN"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
+const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
-	// ✅ 已完成初始化配置
 	initialized: true,
 
-	title: "${siteInfo.title}",
-	subtitle: "${siteInfo.subtitle}",
-	description: "${siteInfo.description}",
+	title: "${title}",
+	subtitle: "${subtitle}",
+	description: "${description}",
 	keywords: [${keywords.join(", ")}],
 
 	lang: SITE_LANG,
 
 	themeColor: {
-		hue: ${themeConfig.themeHue}, // 主题色的默认色相，范围从 0 到 360
-		fixed: false, // 对访问者隐藏主题色选择器
-		defaultMode: "system", // 默认模式："light" 浅色，"dark" 深色，"system" 跟随系统
+		hue: ${themeConfig.themeHue},
+		fixed: false,
+		defaultMode: "system",
 	},
 
 	favicon: [
-		// 留空以使用默认 favicon
 		{
-			src: "/assets/images/favicon.ico", // 图标文件路径
-			theme: "light", // 可选，指定主题 'light' | 'dark'
-			sizes: "32x32", // 可选，图标大小
+			src: "/assets/images/favicon.ico",
+			theme: "light",
+			sizes: "32x32",
 		},
 	],
 
-	// 网站Logo
 	logoIcon: {
 		type: "image",
 		value: "/assets/images/LiuYingPure3.svg",
 		alt: "🍀",
 	},
 
-	// 追番配置
 	bangumi: {
-		userId: "${data.profileInfo.bangumiUserId || ""}", // 在此处设置你的Bangumi用户ID
+		userId: "${bangumiUserId}",
 	},
 
-	// 文章页底部的"上次编辑时间"卡片开关
 	showLastModified: true,
-
-	// OpenGraph图片功能
 	generateOgImages: false,
 
-	// 页面开关配置
 	pages: {
-		anime: ${data.profileInfo.bangumiUserId ? "true" : "false"}, // 追番页面
+		anime: ${data.profileInfo.bangumiUserId ? "true" : "false"},
 		projects: true,
 		timeline: true,
 		skills: true,
 	},
 
-	// 文章列表布局配置
 	postListLayout: {
 		defaultMode: "list",
 		allowSwitch: true,
 	},
 
-	// 分页配置
 	pagination: {
 		postsPerPage: 8,
 	},
@@ -144,9 +271,9 @@ export const siteConfig: SiteConfig = {
 		banner: {
 			homeText: {
 				enable: true,
-				title: "${siteInfo.title}",
+				title: "${title}",
 				subtitle: [
-					"${siteInfo.subtitle}",
+					"${subtitle}",
 					"In Reddened Chrysalis, I Once Rest",
 					"From Shattered Sky, I Free Fall",
 					"Amidst Silenced Stars, I Deep Sleep",
@@ -199,16 +326,25 @@ export const siteConfig: SiteConfig = {
 `;
 }
 
-// 生成 profileConfig.ts 内容
+/**
+ * 生成 profileConfig.ts 内容（使用安全转义）
+ */
 function generateProfileConfig(data: SetupData): string {
 	const { profileInfo } = data;
+
+	// 安全转义
+	const name = escapeStringLiteral(profileInfo.name);
+	const bio = escapeStringLiteral(profileInfo.bio);
+	const githubUsername = escapeStringLiteral(profileInfo.githubUsername || "");
+	const bilibiliUid = escapeStringLiteral(profileInfo.bilibiliUid || "");
+
 	const links: string[] = [];
 
 	if (profileInfo.githubUsername) {
 		links.push(`\t\t{
 			name: "GitHub",
 			icon: "fa6-brands:github",
-			url: "https://github.com/${profileInfo.githubUsername}",
+			url: "https://github.com/${githubUsername}",
 		}`);
 	}
 
@@ -216,7 +352,7 @@ function generateProfileConfig(data: SetupData): string {
 		links.push(`\t\t{
 			name: "Bilibili",
 			icon: "fa6-brands:bilibili",
-			url: "https://space.bilibili.com/${profileInfo.bilibiliUid}",
+			url: "https://space.bilibili.com/${bilibiliUid}",
 		}`);
 	}
 
@@ -224,8 +360,8 @@ function generateProfileConfig(data: SetupData): string {
 
 export const profileConfig: ProfileConfig = {
 	avatar: "/assets/images/avatar.webp",
-	name: "${profileInfo.name}",
-	bio: "${profileInfo.bio}",
+	name: "${name}",
+	bio: "${bio}",
 	links: [
 ${links.join(",\n")}
 	],
@@ -233,10 +369,13 @@ ${links.join(",\n")}
 `;
 }
 
-// 生成 astro.config.mjs 内容
+/**
+ * 生成 astro.config.mjs 内容
+ */
 function generateAstroConfig(data: SetupData): string {
-	// 读取当前的 astro.config.mjs 并替换 site URL
-	// 这里简化处理，只替换 site 配置
+	// URL 已经在 validateSetupData 中验证过
+	const siteUrl = data.siteInfo.siteUrl;
+
 	return `import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
@@ -267,7 +406,7 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import cloudflare from "@astrojs/cloudflare";
 
 export default defineConfig({
-  site: "${data.siteInfo.siteUrl}",
+  site: "${siteUrl}",
   base: "/",
   trailingSlash: "always",
 
@@ -418,7 +557,9 @@ export default defineConfig({
 `;
 }
 
-// 生成 robots.txt 内容
+/**
+ * 生成 robots.txt 内容
+ */
 function generateRobotsTxt(data: SetupData): string {
 	return `# https://www.robotstxt.org/robotstxt.html
 User-agent: *
@@ -428,15 +569,20 @@ Sitemap: ${data.siteInfo.siteUrl}sitemap-index.xml
 `;
 }
 
-// 生成 README 说明文件
+/**
+ * 生成 README 说明文件（使用安全转义）
+ */
 function generateReadme(data: SetupData): string {
+	const title = escapeStringLiteral(data.siteInfo.title);
+	const name = escapeStringLiteral(data.profileInfo.name);
+
 	return `# 🎉 Firefly 博客配置文件
 
 ## 配置信息
 
-- **网站标题**: ${data.siteInfo.title}
+- **网站标题**: ${title}
 - **网站 URL**: ${data.siteInfo.siteUrl}
-- **作者**: ${data.profileInfo.name}
+- **作者**: ${name}
 
 ## 📥 如何使用这些配置文件
 
@@ -473,19 +619,13 @@ git push
 
 ### 5. 等待自动部署
 
-Cloudflare Pages 会自动检测到提交并重新部署你的网站。大约 2-5 分钟后，你的个性化博客就上线了！
+Cloudflare Pages 会自动检测到提交并重新部署你的网站。
 
 ## 🎨 下一步
 
 - **替换图片**: 在 \`public/assets/images/\` 目录下替换头像、Logo 和背景图
 - **创建文章**: 使用 \`pnpm new-post 文章标题\` 创建新文章
-- **自定义配置**: 查看 \`src/config/\` 目录下的其他配置文件进行更多自定义
-
-## 📚 帮助文档
-
-- [项目文档](./CLAUDE.md)
-- [初始化指南](./INIT_GUIDE.md)
-- [部署指南](./DEPLOYMENT.md)
+- **自定义配置**: 查看 \`src/config/\` 目录下的其他配置文件
 
 ## ❓ 遇到问题？
 

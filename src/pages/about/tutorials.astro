@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
-import MainGridLayout from "@layouts/MainGridLayout.astro";
 import PostCard from "@components/PostCard.astro";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
 
 // 获取所有tutorials目录下的教程文章
 const allTutorials = await getCollection("posts", ({ slug }) => {
@@ -16,14 +16,17 @@ const sortedTutorials = allTutorials.sort((a, b) => {
 });
 
 // 按分类分组
-const tutorialsByCategory = sortedTutorials.reduce((acc, post) => {
-	const category = post.data.category || "其他";
-	if (!acc[category]) {
-		acc[category] = [];
-	}
-	acc[category].push(post);
-	return acc;
-}, {} as Record<string, typeof sortedTutorials>);
+const tutorialsByCategory = sortedTutorials.reduce(
+	(acc, post) => {
+		const category = post.data.category || "其他";
+		if (!acc[category]) {
+			acc[category] = [];
+		}
+		acc[category].push(post);
+		return acc;
+	},
+	{} as Record<string, typeof sortedTutorials>,
+);
 
 const pageTitle = "📚 Firefly 使用教程";
 const pageDescription = "学习如何使用和配置 Firefly 博客主题";

@@ -1,9 +1,16 @@
-// OAuth 回调端点
+// OAuth 回调端点 - 完整的 state 验证和安全令牌处理
+import {
+	hmacSha256,
+	securityHeaders,
+	timingSafeEqual,
+} from "../../utils/security";
+
 export const prerender = false;
 
-export async function GET({ request, locals }) {
+export async function GET({ request, locals, cookies }) {
 	const url = new URL(request.url);
 	const code = url.searchParams.get("code");
+	const callbackState = url.searchParams.get("state");
 	const error = url.searchParams.get("error");
 	const errorDescription = url.searchParams.get("error_description");
 
@@ -21,11 +28,13 @@ export async function GET({ request, locals }) {
 					'2. 在 GitHub 授权页面点击"授权"',
 					"3. 确保您的 GitHub 账号有仓库访问权限",
 				],
-				errorDescription || undefined,
 			),
 			{
 				status: 400,
-				headers: { "Content-Type": "text/html; charset=utf-8" },
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
 			},
 		);
 	}
@@ -41,14 +50,105 @@ export async function GET({ request, locals }) {
 			),
 			{
 				status: 400,
-				headers: { "Content-Type": "text/html; charset=utf-8" },
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
 			},
 		);
 	}
 
+	// 🔒 验证 state 参数（防止 CSRF 攻击）
+	const savedState = cookies.get("oauth_state")?.value;
+
+	if (!callbackState || !savedState) {
+		console.error("[OAuth] State 参数缺失", {
+			hasCallbackState: !!callbackState,
+			hasSavedState: !!savedState,
+		});
+		return new Response(
+			buildErrorPage(
+				"安全验证失败",
+				"OAuth 状态参数缺失或无效。这可能是 CSRF 攻击或会话过期。",
+				["请重新开始授权流程", "确保浏览器允许 Cookie"],
+			),
+			{
+				status: 403,
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
+			},
+		);
+	}
+
+	// 使用时间安全的比较（防止时序攻击）
+	if (!timingSafeEqual(callbackState, savedState)) {
+		console.error("[OAuth] State 验证失败 - 可能的 CSRF 攻击");
+		return new Response(
+			buildErrorPage("安全验证失败", "OAuth 状态参数不匹配。请重新授权。", [
+				"请重新开始授权流程",
+			]),
+			{
+				status: 403,
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
+			},
+		);
+	}
+
+	// 验证 state 签名（如果包含签名）
 	const runtime = locals.runtime as any;
 	const clientId = runtime?.env?.GITHUB_CLIENT_ID;
 	const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
+
+	if (clientSecret) {
+		const stateParts = savedState.split(".");
+		if (stateParts.length === 3) {
+			const [timestamp, random, signature] = stateParts;
+			const stateData = `${timestamp}.${random}`;
+			const expectedSignature = await hmacSha256(clientSecret, stateData);
+
+			if (!timingSafeEqual(signature, expectedSignature)) {
+				console.error("[OAuth] State 签名验证失败");
+				return new Response(
+					buildErrorPage("安全验证失败", "OAuth 状态签名无效。", [
+						"请重新开始授权流程",
+					]),
+					{
+						status: 403,
+						headers: {
+							"Content-Type": "text/html; charset=utf-8",
+							...securityHeaders,
+						},
+					},
+				);
+			}
+
+			// 验证时间戳（10分钟有效期）
+			const stateTime = Number.parseInt(timestamp, 10);
+			if (isNaN(stateTime) || Date.now() - stateTime > 600000) {
+				console.error("[OAuth] State 已过期");
+				return new Response(
+					buildErrorPage("授权已过期", "OAuth 授权请求已过期，请重新授权。", [
+						"请重新开始授权流程",
+					]),
+					{
+						status: 403,
+						headers: {
+							"Content-Type": "text/html; charset=utf-8",
+							...securityHeaders,
+						},
+					},
+				);
+			}
+		}
+	}
+
+	// 清除已使用的 state cookie
+	cookies.delete("oauth_state", { path: "/" });
 
 	// 检查环境变量
 	if (!clientId || !clientSecret) {
@@ -64,7 +164,10 @@ export async function GET({ request, locals }) {
 			]),
 			{
 				status: 500,
-				headers: { "Content-Type": "text/html; charset=utf-8" },
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
 			},
 		);
 	}
@@ -93,24 +196,25 @@ export async function GET({ request, locals }) {
 
 		// 检查 GitHub API 错误
 		if (data.error) {
-			console.error("[OAuth] GitHub API 错误:", data);
+			console.error("[OAuth] GitHub API 错误:", data.error);
 			return new Response(
-				buildErrorPage(
-					"GitHub 授权失败",
-					`GitHub 返回错误: ${data.error}`,
-					["请重新尝试授权", "确保 OAuth App 配置正确"],
-					data.error_description || data.error_uri,
-				),
+				buildErrorPage("GitHub 授权失败", `GitHub 返回错误: ${data.error}`, [
+					"请重新尝试授权",
+					"确保 OAuth App 配置正确",
+				]),
 				{
 					status: 400,
-					headers: { "Content-Type": "text/html; charset=utf-8" },
+					headers: {
+						"Content-Type": "text/html; charset=utf-8",
+						...securityHeaders,
+					},
 				},
 			);
 		}
 
 		// 检查访问令牌
 		if (!data.access_token) {
-			console.error("[OAuth] 未收到访问令牌:", data);
+			console.error("[OAuth] 未收到访问令牌");
 			return new Response(
 				buildErrorPage("令牌获取失败", "无法从 GitHub 获取访问令牌。", [
 					"请重新尝试授权",
@@ -118,7 +222,10 @@ export async function GET({ request, locals }) {
 				]),
 				{
 					status: 500,
-					headers: { "Content-Type": "text/html; charset=utf-8" },
+					headers: {
+						"Content-Type": "text/html; charset=utf-8",
+						...securityHeaders,
+					},
 				},
 			);
 		}
@@ -134,20 +241,24 @@ export async function GET({ request, locals }) {
 		// 返回成功页面
 		return new Response(buildSuccessPage(postMsgContent), {
 			status: 200,
-			headers: { "Content-Type": "text/html; charset=utf-8" },
+			headers: {
+				"Content-Type": "text/html; charset=utf-8",
+				...securityHeaders,
+			},
 		});
 	} catch (error) {
 		console.error("[OAuth] 令牌交换失败:", error);
 		return new Response(
-			buildErrorPage(
-				"授权过程出错",
-				"在处理 GitHub 授权时发生错误。",
-				["请重新尝试授权", "如果问题持续，请联系管理员"],
-				error instanceof Error ? error.message : String(error),
-			),
+			buildErrorPage("授权过程出错", "在处理 GitHub 授权时发生错误。", [
+				"请重新尝试授权",
+				"如果问题持续，请联系管理员",
+			]),
 			{
 				status: 500,
-				headers: { "Content-Type": "text/html; charset=utf-8" },
+				headers: {
+					"Content-Type": "text/html; charset=utf-8",
+					...securityHeaders,
+				},
 			},
 		);
 	}
@@ -256,18 +367,16 @@ function buildSuccessPage(postMsgContent: {
       const origin = window.location.origin;
 
       console.log('[OAuth] 授权成功，token 已接收');
-      console.log('[OAuth] Origin:', origin);
 
       if (window.opener) {
         console.log('[OAuth] 检测到 opener，准备发送消息');
 
         // Decap CMS OAuth 握手流程
         function receiveMessage(e) {
-          console.log('[OAuth] 收到来自 opener 的消息:', e.data);
+          console.log('[OAuth] 收到来自 opener 的消息');
 
           // 发送成功消息
           const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
-          console.log('[OAuth] 发送成功消息');
           window.opener.postMessage(successMessage, e.origin);
 
           // 移除监听器
@@ -275,7 +384,6 @@ function buildSuccessPage(postMsgContent: {
 
           // 延迟关闭窗口
           setTimeout(function() {
-            console.log('[OAuth] 关闭窗口');
             window.close();
           }, 500);
         }
@@ -284,29 +392,26 @@ function buildSuccessPage(postMsgContent: {
         window.addEventListener("message", receiveMessage, false);
 
         // 通知 opener 授权进行中
-        console.log('[OAuth] 发送 authorizing 消息');
         window.opener.postMessage("authorizing:github", origin);
 
         // 5秒后如果窗口还未关闭，提供手动关闭选项
         setTimeout(function() {
           if (!window.closed) {
-            console.log('[OAuth] 窗口未自动关闭，显示手动关闭选项');
             document.querySelector('.fallback').innerHTML += '<br><button onclick="window.close()" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">关闭此窗口</button>';
           }
         }, 5000);
       } else {
-        // 如果没有 opener，使用 localStorage 传递 token
-        console.log('[OAuth] 无 opener，使用 localStorage 存储 token');
+        // 如果没有 opener，使用 sessionStorage（比 localStorage 更安全，关闭标签页后清除）
+        console.log('[OAuth] 无 opener，使用 sessionStorage 临时存储');
         try {
-          localStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
-          console.log('[OAuth] Token 已保存到 localStorage');
+          sessionStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
 
           // 重定向回管理面板
           setTimeout(function() {
             window.location.href = '/admin';
           }, 1000);
         } catch (e) {
-          console.error('[OAuth] 无法保存到 localStorage:', e);
+          console.error('[OAuth] 无法保存到 sessionStorage');
           document.querySelector('.message').textContent = '授权完成，请手动返回管理后台。';
         }
       }
@@ -321,7 +426,6 @@ function buildErrorPage(
 	title: string,
 	message: string,
 	steps: string[],
-	detail?: string,
 ): string {
 	return `
 <!DOCTYPE html>
@@ -380,16 +484,6 @@ function buildErrorPage(
       font-size: 14px;
       line-height: 1.8;
     }
-    .detail {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 24px;
-      font-size: 12px;
-      color: #856404;
-      word-break: break-all;
-    }
     .actions {
       display: flex;
       gap: 12px;
@@ -440,7 +534,6 @@ function buildErrorPage(
     `
 				: ""
 		}
-    ${detail ? `<div class="detail"><strong>详细信息：</strong><br>${detail}</div>` : ""}
     <div class="actions">
       <a href="/auth" class="primary">重新授权</a>
       <a href="/admin" class="secondary">返回后台</a>

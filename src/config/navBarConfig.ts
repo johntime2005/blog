@@ -1,5 +1,11 @@
-import {LinkPreset, type NavBarConfig, type NavBarLink, NavBarSearchMethod, type NavBarSearchConfig} from "../types/config";
-import {siteConfig} from "./siteConfig";
+import {
+  LinkPreset,
+  type NavBarConfig,
+  type NavBarLink,
+  type NavBarSearchConfig,
+  NavBarSearchMethod,
+} from "../types/config";
+import { siteConfig } from "./siteConfig";
 
 // 根据页面开关动态生成导航栏配置
 const getDynamicNavBarConfig = (): NavBarConfig => {
@@ -64,12 +70,13 @@ export const navBarSearchConfig: NavBarSearchConfig = {
   method: NavBarSearchMethod.PageFind,
   // 当选择 MeiliSearch 时的配置
   meiliSearchConfig: {
-    INDEX_NAME: 'posts',
-    CONTENT_DIR: 'src/content/posts',
+    INDEX_NAME: "posts",
+    CONTENT_DIR: "src/content/posts",
     MEILI_HOST: "http://localhost:7700",
     PUBLIC_MEILI_HOST: "http://localhost:7700",
-    PUBLIC_MEILI_SEARCH_KEY: "41134b15079da66ca545375edbea848a9b7173dff13be2028318fefa41ae8f2b",
-  }
-}
+    PUBLIC_MEILI_SEARCH_KEY:
+      "41134b15079da66ca545375edbea848a9b7173dff13be2028318fefa41ae8f2b",
+  },
+};
 
 export const navBarConfig: NavBarConfig = getDynamicNavBarConfig();

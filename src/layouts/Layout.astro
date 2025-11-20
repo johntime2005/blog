@@ -1,11 +1,11 @@
 ---
-import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
-import FontManager from "@components/interactive/FontManager.astro";
-import MusicPlayer from "@components/widget/MusicPlayer.astro";
-import SakuraEffect from "@components/effects/SakuraEffect.astro";
 import FancyboxManager from "@components/effects/FancyboxManager.astro";
+import SakuraEffect from "@components/effects/SakuraEffect.astro";
+import FontManager from "@components/interactive/FontManager.astro";
+import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
+import MusicPlayer from "@components/widget/MusicPlayer.astro";
 
-import { profileConfig, siteConfig, expressiveCodeConfig } from "@/config";
+import { expressiveCodeConfig, profileConfig, siteConfig } from "@/config";
 import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
@@ -14,8 +14,8 @@ import {
 } from "@/constants/constants";
 import { defaultFavicons } from "@/constants/icon";
 import type { Favicon } from "@/types/config";
-import { url } from "@/utils/url-utils";
 import { getDefaultBackground, isHomePage } from "@/utils/layout-utils";
+import { url } from "@/utils/url-utils";
 
 import "katex/dist/katex.css";
 import "@/styles/navbar.css";
@@ -95,7 +95,6 @@ const siteLang = lang.replace("_", "-");
 
 // 使用固定的banner偏移量，position配置用于图片定位
 const bannerOffset = `${BANNER_HEIGHT_EXTEND / 2}vh`;
-
 ---
 
 <!DOCTYPE html>
