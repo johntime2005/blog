@@ -7,11 +7,12 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPosts } from "@utils/content-utils";
-import { getDir, getPostUrlBySlug } from "@utils/url-utils";
+import { getDir, getPostUrlBySlug, url } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import PostMetadata from "@/components/content/PostMeta.astro";
+import EncryptedPostGuard from "@/components/EncryptedPostGuard.svelte";
 import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";
 import { licenseConfig } from "@/config/licenseConfig";
 import { profileConfig } from "@/config/profileConfig";
@@ -19,14 +20,13 @@ import { siteConfig } from "@/config/siteConfig";
 import { sponsorConfig } from "@/config/sponsorConfig";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
-import EncryptedPostGuard from "@/components/EncryptedPostGuard.svelte";
 
 export async function getStaticPaths() {
-	const blogEntries = await getSortedPosts();
-	return blogEntries.map((entry) => ({
-		params: { slug: entry.slug },
-		props: { entry },
-	}));
+  const blogEntries = await getSortedPosts();
+  return blogEntries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
 }
 
 const { entry } = Astro.props;
@@ -41,25 +41,25 @@ const processedImage = processCoverImageSync(entry.data.image, entry.slug);
 
 dayjs.extend(utc);
 const lastModified = dayjs(entry.data.updated || entry.data.published)
-	.utc()
-	.format("YYYY-MM-DDTHH:mm:ss");
+  .utc()
+  .format("YYYY-MM-DDTHH:mm:ss");
 
 const jsonLd = {
-	"@context": "https://schema.org",
-	"@type": "BlogPosting",
-	headline: entry.data.title,
-	description: entry.data.description || entry.data.title,
-	keywords: entry.data.tags,
-	author: {
-		"@type": "Person",
-		name: profileConfig.name,
-		url: Astro.site,
-	},
-	datePublished: formatDateToYYYYMMDD(entry.data.published),
-	inLanguage: entry.data.lang
-		? entry.data.lang.replace("_", "-")
-		: siteConfig.lang.replace("_", "-"),
-	// TODO include cover image here
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: entry.data.title,
+  description: entry.data.description || entry.data.title,
+  keywords: entry.data.tags,
+  author: {
+    "@type": "Person",
+    name: profileConfig.name,
+    url: Astro.site,
+  },
+  datePublished: formatDateToYYYYMMDD(entry.data.published),
+  inLanguage: entry.data.lang
+    ? entry.data.lang.replace("_", "-")
+    : siteConfig.lang.replace("_", "-"),
+  // TODO include cover image here
 };
 ---
 
@@ -119,7 +119,7 @@ const jsonLd = {
                 i18n(
                   remarkPluginFrontmatter.minutes === 1
                     ? I18nKey.minuteCount
-                    : I18nKey.minutesCount
+                    : I18nKey.minutesCount,
                 )
             }
           </div>
@@ -182,43 +182,45 @@ const jsonLd = {
         id="post-content"
         data-encrypted={entry.data.encrypted ? "true" : "false"}
         data-encryption-id={entry.data.encryptionId}
-        style={entry.data.encrypted ? "filter: blur(10px); pointer-events: none; user-select: none;" : ""}
+        style={entry.data.encrypted
+          ? "filter: blur(10px); pointer-events: none; user-select: none;"
+          : ""}
       >
         <Markdown class="mb-6 markdown-content onload-animation">
           <Content />
         </Markdown>
 
-      {/* 赞助按钮 */}
-      {
-        sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
-          <div class="mb-6 rounded-xl onload-animation">
-            <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
-              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3 flex-1">
-                  <div class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0">
-                    <Icon name="material-symbols:favorite" class="text-2xl" />
+        {/* 赞助按钮 */}
+        {
+          sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
+            <div class="mb-6 rounded-xl onload-animation">
+              <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div class="flex items-center gap-3 flex-1">
+                    <div class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0">
+                      <Icon name="material-symbols:favorite" class="text-2xl" />
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
+                        {i18n(I18nKey.sponsorButton)}
+                      </h3>
+                      <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                        {i18n(I18nKey.sponsorButtonText)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                      {i18n(I18nKey.sponsorButton)}
-                    </h3>
-                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                      {i18n(I18nKey.sponsorButtonText)}
-                    </p>
-                  </div>
+                  <a
+                    href={url("/sponsor/")}
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    <span>{i18n(I18nKey.sponsor)}</span>
+                    <Icon name="fa6-solid:arrow-right" class="text-sm" />
+                  </a>
                 </div>
-                <a
-                  href={url("/sponsor/")}
-                  class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
-                >
-                  <span>{i18n(I18nKey.sponsor)}</span>
-                  <Icon name="fa6-solid:arrow-right" class="text-sm" />
-                </a>
               </div>
             </div>
-          </div>
-        )
-      }
+          )
+        }
       </div>
 
       {/* 许可证 */}
@@ -253,7 +255,7 @@ const jsonLd = {
 
           {(() => {
             const lastModified = dayjs(
-              entry.data.updated || entry.data.published
+              entry.data.updated || entry.data.published,
             );
             const now = dayjs();
             const daysDiff = now.diff(lastModified, "day");

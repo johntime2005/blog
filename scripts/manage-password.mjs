@@ -13,11 +13,9 @@
  * 或在项目根目录创建 .env.encryption 文件
  */
 
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,7 +31,7 @@ try {
 		}
 	}
 } catch (error) {
-	// 忽略错误，环境变量可能已通过其他方式设置
+	// 忽略错误，_error能已通过其他方式设置
 }
 
 const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -106,12 +104,12 @@ async function setPassword(encryptionId, password) {
 		},
 	});
 
-	console.log(`✅ 密码设置成功！`);
-	console.log(`\n在文章的 frontmatter 中添加：`);
-	console.log(`---`);
-	console.log(`encrypted: true`);
+	console.log("✅ 密码设置成功！");
+	console.log("\n在文章的 frontmatter 中添加：");
+	console.log("---");
+	console.log("encrypted: true");
 	console.log(`encryptionId: "${encryptionId}"`);
-	console.log(`---`);
+	console.log("---");
 }
 
 /**
@@ -124,19 +122,19 @@ async function deletePassword(encryptionId) {
 
 	await kvRequest("DELETE", `/values/${key}`);
 
-	console.log(`✅ 密码已删除！`);
+	console.log("✅ 密码已删除！");
 }
 
 /**
  * 列出所有加密文章
  */
 async function listPasswords() {
-	console.log(`📋 正在获取所有加密文章...`);
+	console.log("📋 正在获取所有加密文章...");
 
-	const result = await kvRequest("GET", `/keys?prefix=post:`);
+	const result = await kvRequest("GET", "/keys?prefix=post:");
 
 	if (!result || result.length === 0) {
-		console.log(`\n暂无加密文章`);
+		console.log("\n暂无加密文章");
 		return;
 	}
 
@@ -194,7 +192,9 @@ async function main() {
 				const [, encryptionId, password] = args;
 				if (!encryptionId || !password) {
 					console.error("❌ 错误：缺少参数");
-					console.error("用法: pnpm manage-password set <encryptionId> <password>");
+					console.error(
+						"用法: pnpm manage-password set <encryptionId> <password>",
+					);
 					process.exit(1);
 				}
 				await setPassword(encryptionId, password);
@@ -216,8 +216,6 @@ async function main() {
 				await listPasswords();
 				break;
 			}
-
-			case "help":
 			default: {
 				showHelp();
 				break;
