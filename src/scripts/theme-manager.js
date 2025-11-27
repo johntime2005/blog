@@ -1,11 +1,11 @@
 // 主题管理脚本
 export function initThemeManager() {
-	const DEFAULT_THEME = "LIGHT_MODE";
+	const _DEFAULT_THEME = "LIGHT_MODE";
 	const LIGHT_MODE = "LIGHT_MODE";
 	const DARK_MODE = "DARK_MODE";
 	const SYSTEM_MODE = "SYSTEM_MODE";
 	const BANNER_HEIGHT_EXTEND = 30;
-	const PAGE_WIDTH = 80;
+	const _PAGE_WIDTH = 80;
 	const configHue = 200; // 从配置中获取
 	const defaultMode = "system"; // 从配置中获取
 

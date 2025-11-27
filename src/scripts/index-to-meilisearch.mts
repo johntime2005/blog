@@ -1,9 +1,9 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
-import fs from "fs/promises";
 import { glob } from "glob";
 import matter from "gray-matter";
 import { MeiliSearch } from "meilisearch";
-import path from "path";
 import { navBarSearchConfig } from "../config/index.ts";
 
 class MeiliSearchIndexer {
@@ -75,7 +75,7 @@ class MeiliSearchIndexer {
 					content: plainText,
 					pubDate: data.published
 						? new Date(data.published).getTime()
-						: new Date().getTime(),
+						: Date.now(),
 				};
 			}),
 		);

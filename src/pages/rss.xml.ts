@@ -8,20 +8,26 @@ import { siteConfig } from "../config";
 
 // Function to sanitize XML content by removing invalid characters
 function sanitizeXmlContent(content: string): string {
-	return content
-		.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters except \t, \n, \r
-		.replace(/&(?!amp;|lt;|gt;|quot;|apos;)/g, "&amp;") // Escape unescaped ampersands
-		.replace(/</g, "&lt;") // Escape <
-		.replace(/>/g, "&gt;") // Escape >
-		.replace(/"/g, "&quot;") // Escape "
-		.replace(/'/g, "&apos;"); // Escape '
+	return (
+		content
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally removing control characters for XML safety
+			.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters except \t, \n, \r
+			.replace(/&(?!amp;|lt;|gt;|quot;|apos;)/g, "&amp;") // Escape unescaped ampersands
+			.replace(/</g, "&lt;") // Escape <
+			.replace(/>/g, "&gt;") // Escape >
+			.replace(/"/g, "&quot;") // Escape "
+			.replace(/'/g, "&apos;")
+	); // Escape '
 }
 
 // Function to sanitize HTML content for XML (removes invalid chars but preserves HTML)
 function sanitizeHtmlForXml(content: string): string {
-	return content
-		.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters except \t, \n, \r
-		.replace(/&(?!amp;|lt;|gt;|quot;|apos;)/g, "&amp;"); // Only escape unescaped ampersands
+	return (
+		content
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally removing control characters for XML safety
+			.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Remove control characters except \t, \n, \r
+			.replace(/&(?!amp;|lt;|gt;|quot;|apos;)/g, "&amp;")
+	); // Only escape unescaped ampersands
 }
 
 // Constants

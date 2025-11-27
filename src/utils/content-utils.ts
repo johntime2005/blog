@@ -68,10 +68,7 @@ async function getRawSortedPosts() {
 
 	const sorted = allBlogPosts.sort((a, b) => {
 		// 1. 首先按自定义排序优先级（如果设置）
-		if (
-			a.data.customOrder !== undefined &&
-			b.data.customOrder !== undefined
-		) {
+		if (a.data.customOrder !== undefined && b.data.customOrder !== undefined) {
 			return a.data.customOrder - b.data.customOrder;
 		}
 		if (a.data.customOrder !== undefined) return -1;

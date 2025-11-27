@@ -1,7 +1,7 @@
 ---
+import AdminPanel from "@components/admin/AdminPanel.svelte";
 import Layout from "@layouts/Layout.astro";
 import { getSortedPosts } from "@utils/content-utils";
-import AdminPanel from "@components/admin/AdminPanel.svelte";
 
 // 获取所有文章
 const posts = await getSortedPosts();

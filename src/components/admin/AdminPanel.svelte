@@ -1,294 +1,302 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte";
+import { onMount } from "svelte";
 
-	interface Post {
-		slug: string;
-		title: string;
-		published: string;
-		encrypted: boolean;
-		encryptionId: string;
-		category: string;
-		tags: string[];
+interface Post {
+	slug: string;
+	title: string;
+	published: string;
+	encrypted: boolean;
+	encryptionId: string;
+	category: string;
+	tags: string[];
+}
+
+interface Props {
+	posts: Post[];
+}
+
+let { posts }: Props = $props();
+
+// 状态管理
+let isLoggedIn = $state(false);
+let loginPassword = $state("");
+let isLoggingIn = $state(false);
+let loginError = $state("");
+let adminToken = $state("");
+
+// 文章列表状态
+let searchQuery = $state("");
+let filterEncrypted = $state<"all" | "encrypted" | "unencrypted">("all");
+let selectedPosts = $state(new Set<string>());
+
+// 密码管理状态
+let encryptedPasswords = $state<
+	Map<string, { password?: string; createdAt?: string }>
+>(new Map());
+let showPasswordFor = $state<string | null>(null);
+
+// 操作状态
+let isProcessing = $state(false);
+let successMessage = $state("");
+let errorMessage = $state("");
+
+// 检查本地存储中的 token
+onMount(() => {
+	const storedToken = localStorage.getItem("admin-token");
+	if (storedToken) {
+		verifyStoredToken(storedToken);
 	}
+});
 
-	interface Props {
-		posts: Post[];
-	}
+// 验证已存储的 token
+async function verifyStoredToken(token: string) {
+	try {
+		const response = await fetch("/api/admin/verify-token", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token }),
+		});
 
-	let { posts }: Props = $props();
-
-	// 状态管理
-	let isLoggedIn = $state(false);
-	let loginPassword = $state("");
-	let isLoggingIn = $state(false);
-	let loginError = $state("");
-	let adminToken = $state("");
-
-	// 文章列表状态
-	let searchQuery = $state("");
-	let filterEncrypted = $state<"all" | "encrypted" | "unencrypted">("all");
-	let selectedPosts = $state(new Set<string>());
-
-	// 密码管理状态
-	let encryptedPasswords = $state<Map<string, { password?: string; createdAt?: string }>>(new Map());
-	let showPasswordFor = $state<string | null>(null);
-
-	// 操作状态
-	let isProcessing = $state(false);
-	let successMessage = $state("");
-	let errorMessage = $state("");
-
-	// 检查本地存储中的 token
-	onMount(() => {
-		const storedToken = localStorage.getItem("admin-token");
-		if (storedToken) {
-			verifyStoredToken(storedToken);
-		}
-	});
-
-	// 验证已存储的 token
-	async function verifyStoredToken(token: string) {
-		try {
-			const response = await fetch("/api/admin/verify-token", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token }),
-			});
-
-			const data = await response.json();
-			if (data.valid) {
-				adminToken = token;
-				isLoggedIn = true;
-				await loadEncryptedPasswords();
-			} else {
-				localStorage.removeItem("admin-token");
-			}
-		} catch (error) {
-			console.error("Token verification failed:", error);
+		const data = await response.json();
+		if (data.valid) {
+			adminToken = token;
+			isLoggedIn = true;
+			await loadEncryptedPasswords();
+		} else {
 			localStorage.removeItem("admin-token");
 		}
-	}
-
-	// 登录处理
-	async function handleLogin(e: Event) {
-		e.preventDefault();
-		loginError = "";
-		isLoggingIn = true;
-
-		try {
-			const response = await fetch("/api/admin/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ password: loginPassword }),
-			});
-
-			const data = await response.json();
-
-			if (data.success) {
-				adminToken = data.token;
-				isLoggedIn = true;
-				localStorage.setItem("admin-token", data.token);
-				loginPassword = "";
-				await loadEncryptedPasswords();
-			} else {
-				loginError = data.message || "登录失败";
-			}
-		} catch (error) {
-			console.error("Login error:", error);
-			loginError = "登录失败，请稍后重试";
-		} finally {
-			isLoggingIn = false;
-		}
-	}
-
-	// 登出
-	function handleLogout() {
+	} catch (error) {
+		console.error("Token verification failed:", error);
 		localStorage.removeItem("admin-token");
-		adminToken = "";
-		isLoggedIn = false;
-		encryptedPasswords.clear();
 	}
+}
 
-	// 加载所有加密密码
-	async function loadEncryptedPasswords() {
-		try {
-			const response = await fetch("/api/admin/manage-passwords", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					action: "list",
-					token: adminToken,
-				}),
-			});
+// 登录处理
+async function handleLogin(e: Event) {
+	e.preventDefault();
+	loginError = "";
+	isLoggingIn = true;
 
-			const data = await response.json();
-			if (data.success) {
-				const newMap = new Map();
-				for (const item of data.passwords) {
-					newMap.set(item.encryptionId, {
-						createdAt: item.createdAt,
-					});
-				}
-				encryptedPasswords = newMap;
-			}
-		} catch (error) {
-			console.error("Failed to load passwords:", error);
+	try {
+		const response = await fetch("/api/admin/login", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ password: loginPassword }),
+		});
+
+		const data = await response.json();
+
+		if (data.success) {
+			adminToken = data.token;
+			isLoggedIn = true;
+			localStorage.setItem("admin-token", data.token);
+			loginPassword = "";
+			await loadEncryptedPasswords();
+		} else {
+			loginError = data.message || "登录失败";
 		}
+	} catch (error) {
+		console.error("Login error:", error);
+		loginError = "登录失败，请稍后重试";
+	} finally {
+		isLoggingIn = false;
 	}
+}
 
-	// 启用加密（生成密码）
-	async function enableEncryption(slug: string) {
-		isProcessing = true;
-		errorMessage = "";
-		successMessage = "";
+// 登出
+function handleLogout() {
+	localStorage.removeItem("admin-token");
+	adminToken = "";
+	isLoggedIn = false;
+	encryptedPasswords.clear();
+}
 
-		try {
-			const encryptionId = slug.replace(/\//g, "-");
+// 加载所有加密密码
+async function loadEncryptedPasswords() {
+	try {
+		const response = await fetch("/api/admin/manage-passwords", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				action: "list",
+				token: adminToken,
+			}),
+		});
 
-			const response = await fetch("/api/admin/manage-passwords", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					action: "generate",
-					token: adminToken,
-					encryptionId,
-					passwordLength: 16,
-				}),
-			});
-
-			const data = await response.json();
-
-			if (data.success) {
-				successMessage = `密码生成成功！密码：${data.password}（已永久保存，可随时在后台查看）`;
-				encryptedPasswords.set(encryptionId, {
-					password: data.password,
-					createdAt: new Date().toISOString(),
+		const data = await response.json();
+		if (data.success) {
+			const newMap = new Map();
+			for (const item of data.passwords) {
+				newMap.set(item.encryptionId, {
+					createdAt: item.createdAt,
 				});
-
-				// 提示用户需要手动更新文章 frontmatter
-				alert(
-					`✅ 密码已生成并永久保存！\n\n` +
-						`📝 请在文章 ${slug} 的 frontmatter 中添加：\n\n` +
-						`encrypted: true\n` +
-						`encryptionId: "${encryptionId}"\n\n` +
-						`🔑 密码：${data.password}\n\n` +
-						`💡 密码已保存到后台，遗失时可随时查看`
-				);
-			} else {
-				errorMessage = data.message || "生成密码失败";
 			}
-		} catch (error) {
-			console.error("Enable encryption error:", error);
-			errorMessage = "操作失败，请稍后重试";
-		} finally {
-			isProcessing = false;
+			encryptedPasswords = newMap;
 		}
+	} catch (error) {
+		console.error("Failed to load passwords:", error);
 	}
+}
 
-	// 禁用加密（删除密码）
-	async function disableEncryption(encryptionId: string) {
-		if (!confirm(`确定要删除文章 "${encryptionId}" 的密码吗？用户将无法访问该文章。`)) {
-			return;
-		}
+// 启用加密（生成密码）
+async function enableEncryption(slug: string) {
+	isProcessing = true;
+	errorMessage = "";
+	successMessage = "";
 
-		isProcessing = true;
-		errorMessage = "";
-		successMessage = "";
+	try {
+		const encryptionId = slug.replace(/\//g, "-");
 
-		try {
-			const response = await fetch("/api/admin/manage-passwords", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					action: "delete",
-					token: adminToken,
-					encryptionId,
-				}),
+		const response = await fetch("/api/admin/manage-passwords", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				action: "generate",
+				token: adminToken,
+				encryptionId,
+				passwordLength: 16,
+			}),
+		});
+
+		const data = await response.json();
+
+		if (data.success) {
+			successMessage = `密码生成成功！密码：${data.password}（已永久保存，可随时在后台查看）`;
+			encryptedPasswords.set(encryptionId, {
+				password: data.password,
+				createdAt: new Date().toISOString(),
 			});
 
-			const data = await response.json();
-
-			if (data.success) {
-				successMessage = "密码已删除";
-				encryptedPasswords.delete(encryptionId);
-				alert(`密码已删除！请同时在文章 frontmatter 中设置：\n\nencrypted: false`);
-			} else {
-				errorMessage = data.message || "删除失败";
-			}
-		} catch (error) {
-			console.error("Disable encryption error:", error);
-			errorMessage = "操作失败，请稍后重试";
-		} finally {
-			isProcessing = false;
-		}
-	}
-
-	// 查看密码
-	async function viewPassword(encryptionId: string) {
-		try {
-			const response = await fetch("/api/admin/get-password", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					token: adminToken,
-					encryptionId,
-				}),
-			});
-
-			const data = await response.json();
-
-			if (data.success) {
-				const current = encryptedPasswords.get(encryptionId) || {};
-				encryptedPasswords.set(encryptionId, {
-					...current,
-					password: data.password,
-				});
-				showPasswordFor = encryptionId;
-			} else {
-				alert("获取密码失败：密码可能未生成或已被删除");
-			}
-		} catch (error) {
-			console.error("View password error:", error);
-			alert("获取密码失败");
-		}
-	}
-
-	// 复制密码
-	async function copyPassword(password: string) {
-		try {
-			await navigator.clipboard.writeText(password);
-			successMessage = "密码已复制到剪贴板";
-			setTimeout(() => (successMessage = ""), 3000);
-		} catch (error) {
-			alert("复制失败，请手动复制");
-		}
-	}
-
-	// 过滤后的文章列表
-	const filteredPosts = $derived(() => {
-		let result = posts;
-
-		// 按加密状态过滤
-		if (filterEncrypted === "encrypted") {
-			result = result.filter((p) => p.encrypted);
-		} else if (filterEncrypted === "unencrypted") {
-			result = result.filter((p) => !p.encrypted);
-		}
-
-		// 按搜索关键词过滤
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			result = result.filter(
-				(p) =>
-					p.title.toLowerCase().includes(query) ||
-					p.slug.toLowerCase().includes(query) ||
-					p.category?.toLowerCase().includes(query)
+			// 提示用户需要手动更新文章 frontmatter
+			alert(
+				"✅ 密码已生成并永久保存！\n\n" +
+					`📝 请在文章 ${slug} 的 frontmatter 中添加：\n\n` +
+					"encrypted: true\n" +
+					`encryptionId: "${encryptionId}"\n\n` +
+					`🔑 密码：${data.password}\n\n` +
+					"💡 密码已保存到后台，遗失时可随时查看",
 			);
+		} else {
+			errorMessage = data.message || "生成密码失败";
 		}
+	} catch (error) {
+		console.error("Enable encryption error:", error);
+		errorMessage = "操作失败，请稍后重试";
+	} finally {
+		isProcessing = false;
+	}
+}
 
-		return result;
-	});
+// 禁用加密（删除密码）
+async function disableEncryption(encryptionId: string) {
+	if (
+		!confirm(
+			`确定要删除文章 "${encryptionId}" 的密码吗？用户将无法访问该文章。`,
+		)
+	) {
+		return;
+	}
+
+	isProcessing = true;
+	errorMessage = "";
+	successMessage = "";
+
+	try {
+		const response = await fetch("/api/admin/manage-passwords", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				action: "delete",
+				token: adminToken,
+				encryptionId,
+			}),
+		});
+
+		const data = await response.json();
+
+		if (data.success) {
+			successMessage = "密码已删除";
+			encryptedPasswords.delete(encryptionId);
+			alert(
+				"密码已删除！请同时在文章 frontmatter 中设置：\n\nencrypted: false",
+			);
+		} else {
+			errorMessage = data.message || "删除失败";
+		}
+	} catch (error) {
+		console.error("Disable encryption error:", error);
+		errorMessage = "操作失败，请稍后重试";
+	} finally {
+		isProcessing = false;
+	}
+}
+
+// 查看密码
+async function viewPassword(encryptionId: string) {
+	try {
+		const response = await fetch("/api/admin/get-password", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				token: adminToken,
+				encryptionId,
+			}),
+		});
+
+		const data = await response.json();
+
+		if (data.success) {
+			const current = encryptedPasswords.get(encryptionId) || {};
+			encryptedPasswords.set(encryptionId, {
+				...current,
+				password: data.password,
+			});
+			showPasswordFor = encryptionId;
+		} else {
+			alert("获取密码失败：密码可能未生成或已被删除");
+		}
+	} catch (error) {
+		console.error("View password error:", error);
+		alert("获取密码失败");
+	}
+}
+
+// 复制密码
+async function copyPassword(password: string) {
+	try {
+		await navigator.clipboard.writeText(password);
+		successMessage = "密码已复制到剪贴板";
+		setTimeout(() => (successMessage = ""), 3000);
+	} catch (error) {
+		alert("复制失败，请手动复制");
+	}
+}
+
+// 过滤后的文章列表
+const filteredPosts = $derived(() => {
+	let result = posts;
+
+	// 按加密状态过滤
+	if (filterEncrypted === "encrypted") {
+		result = result.filter((p) => p.encrypted);
+	} else if (filterEncrypted === "unencrypted") {
+		result = result.filter((p) => !p.encrypted);
+	}
+
+	// 按搜索关键词过滤
+	if (searchQuery) {
+		const query = searchQuery.toLowerCase();
+		result = result.filter(
+			(p) =>
+				p.title.toLowerCase().includes(query) ||
+				p.slug.toLowerCase().includes(query) ||
+				p.category?.toLowerCase().includes(query),
+		);
+	}
+
+	return result;
+});
 </script>
 
 {#if !isLoggedIn}

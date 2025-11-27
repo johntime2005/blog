@@ -1,87 +1,87 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { Icon } from "astro-icon/components";
+import { Icon } from "astro-icon/components";
+import { onMount } from "svelte";
 
-	interface Props {
-		encryptionId: string;
-		postSlug: string;
+interface Props {
+	encryptionId: string;
+	postSlug: string;
+}
+
+let { encryptionId, postSlug }: Props = $props();
+
+let password = $state("");
+let isVerifying = $state(false);
+let errorMessage = $state("");
+let isUnlocked = $state(false);
+let token = $state("");
+
+// 检查本地存储中是否已有有效令牌
+onMount(() => {
+	const storedToken = localStorage.getItem(`post-token:${encryptionId}`);
+	if (storedToken) {
+		verifyStoredToken(storedToken);
 	}
+});
 
-	let { encryptionId, postSlug }: Props = $props();
+async function verifyStoredToken(storedToken: string) {
+	try {
+		const response = await fetch("/api/check-token", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				encryptionId,
+				token: storedToken,
+			}),
+		});
 
-	let password = $state("");
-	let isVerifying = $state(false);
-	let errorMessage = $state("");
-	let isUnlocked = $state(false);
-	let token = $state("");
-
-	// 检查本地存储中是否已有有效令牌
-	onMount(() => {
-		const storedToken = localStorage.getItem(`post-token:${encryptionId}`);
-		if (storedToken) {
-			verifyStoredToken(storedToken);
-		}
-	});
-
-	async function verifyStoredToken(storedToken: string) {
-		try {
-			const response = await fetch("/api/check-token", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					encryptionId,
-					token: storedToken,
-				}),
-			});
-
-			const data = await response.json();
-			if (data.valid) {
-				token = storedToken;
-				isUnlocked = true;
-			} else {
-				localStorage.removeItem(`post-token:${encryptionId}`);
-			}
-		} catch (error) {
-			console.error("Token verification failed:", error);
+		const data = await response.json();
+		if (data.valid) {
+			token = storedToken;
+			isUnlocked = true;
+		} else {
 			localStorage.removeItem(`post-token:${encryptionId}`);
 		}
+	} catch (error) {
+		console.error("Token verification failed:", error);
+		localStorage.removeItem(`post-token:${encryptionId}`);
 	}
+}
 
-	async function handleSubmit(e: Event) {
-		e.preventDefault();
-		errorMessage = "";
-		isVerifying = true;
+async function handleSubmit(e: Event) {
+	e.preventDefault();
+	errorMessage = "";
+	isVerifying = true;
 
-		try {
-			const response = await fetch("/api/verify-password", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					encryptionId,
-					password,
-				}),
-			});
+	try {
+		const response = await fetch("/api/verify-password", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				encryptionId,
+				password,
+			}),
+		});
 
-			const data = await response.json();
+		const data = await response.json();
 
-			if (data.success) {
-				token = data.token;
-				isUnlocked = true;
-				// 保存令牌到本地存储
-				localStorage.setItem(`post-token:${encryptionId}`, data.token);
-				// 刷新页面以显示内容
-				window.location.reload();
-			} else {
-				errorMessage = data.message || "密码错误，请重试";
-				password = "";
-			}
-		} catch (error) {
-			console.error("Password verification error:", error);
-			errorMessage = "验证失败，请稍后重试";
-		} finally {
-			isVerifying = false;
+		if (data.success) {
+			token = data.token;
+			isUnlocked = true;
+			// 保存令牌到本地存储
+			localStorage.setItem(`post-token:${encryptionId}`, data.token);
+			// 刷新页面以显示内容
+			window.location.reload();
+		} else {
+			errorMessage = data.message || "密码错误，请重试";
+			password = "";
 		}
+	} catch (error) {
+		console.error("Password verification error:", error);
+		errorMessage = "验证失败，请稍后重试";
+	} finally {
+		isVerifying = false;
 	}
+}
 </script>
 
 {#if !isUnlocked}

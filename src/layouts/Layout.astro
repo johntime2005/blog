@@ -673,6 +673,17 @@ const setup = () => {
 		}
 	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
+		// 立即同步主题状态 - 在页面切换开始时就应用,防止闪烁
+		const storedTheme = localStorage.getItem('theme') || 'light';
+		const isDark = storedTheme === 'dark';
+		const expectedTheme = isDark ? expressiveCodeConfig.darkTheme : expressiveCodeConfig.lightTheme;
+		const currentTheme = document.documentElement.getAttribute('data-theme');
+
+		// 如果主题不匹配,立即应用正确主题
+		if (currentTheme !== expectedTheme) {
+			document.documentElement.setAttribute('data-theme', expectedTheme);
+		}
+
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
 		const isHomePage = pathsEqual(visit.to.url, url('/'))
@@ -765,21 +776,6 @@ const setup = () => {
 			top: 0,
 			behavior: 'instant'
 		});
-
-		// 同步主题状态 - 解决从首页进入文章页面时代码块渲染问题
-		const storedTheme = localStorage.getItem('theme') || 'light';
-		const isDark = storedTheme === 'dark';
-		const expectedTheme = isDark ? expressiveCodeConfig.darkTheme : expressiveCodeConfig.lightTheme;
-		const currentTheme = document.documentElement.getAttribute('data-theme');
-
-		// 如果主题不匹配，强制重新应用
-		if (currentTheme !== expectedTheme) {
-			document.documentElement.setAttribute('data-theme', expectedTheme);
-			// 触发代码块重新渲染
-			setTimeout(() => {
-				window.dispatchEvent(new CustomEvent('theme-change'));
-			}, 50);
-		}
 
 		// 检查当前页面是否为文章页面，如果是则触发自定义事件用于初始化评论系统
 		setTimeout(() => {

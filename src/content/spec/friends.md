@@ -13,7 +13,7 @@ description: 与优秀的朋友们一起成长
 ```yaml
 站点名称: 夏夜流萤
 站点描述: 总有一场相遇，是互相喜欢的！
-站点链接: https://blog.cuteleaf.cn
+站点链接: https://blog.johntime.top
 头像链接: https://q.qlogo.cn/headimg_dl?dst_uin=7618557&spec=640&img_type=jpg
 ```
 

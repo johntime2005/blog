@@ -166,7 +166,6 @@ export const generateRightSidebarClasses = (
 		mobileShowSidebar,
 		tabletShowSidebar,
 		desktopShowSidebar,
-		hasLeftComponentsMobile,
 		hasLeftComponentsTablet,
 		hasLeftComponentsDesktop,
 		hasRightComponentsMobile,

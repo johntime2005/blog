@@ -129,7 +129,7 @@ export async function GET({ request, locals, cookies }) {
 
 			// 验证时间戳（10分钟有效期）
 			const stateTime = Number.parseInt(timestamp, 10);
-			if (isNaN(stateTime) || Date.now() - stateTime > 600000) {
+			if (Number.isNaN(stateTime) || Date.now() - stateTime > 600000) {
 				console.error("[OAuth] State 已过期");
 				return new Response(
 					buildErrorPage("授权已过期", "OAuth 授权请求已过期，请重新授权。", [

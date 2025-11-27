@@ -15,6 +15,15 @@ import type { FriendLink } from "../types/config";
 // }
 export const friendsConfig: FriendLink[] = [
 	// 在这里添加您的友链
+	{
+		title: "Misaka Network",
+		imgurl: "https://blog.misaka-net.top/favicon.svg",
+		desc: "科学实验日志与技术观测站",
+		siteurl: "https://blog.misaka-net.top",
+		tags: ["Blog", "Tech"],
+		weight: 10,
+		enabled: true,
+	},
 ];
 
 // 获取启用的友链并按权重排序

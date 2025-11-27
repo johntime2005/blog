@@ -1,5 +1,5 @@
+import { execSync } from "node:child_process";
 import type { AstroIntegration } from "astro";
-import { execSync } from "child_process";
 import { navBarSearchConfig } from "../config/index.ts";
 import MeiliSearchIndexer from "../scripts/index-to-meilisearch.mts";
 import { NavBarSearchMethod } from "../types/config.ts";
@@ -14,7 +14,7 @@ export default function searchIndexer() {
 		hooks: {
 			"astro:build:done": async () => {
 				console.log(
-					"=".repeat(10) + "Running Search Indexer..." + "=".repeat(10),
+					`${"=".repeat(10)}Running Search Indexer...${"=".repeat(10)}`,
 				);
 				if (navBarSearchConfig.method === NavBarSearchMethod.MeiliSearch) {
 					const meiliSearchConfig = navBarSearchConfig.meiliSearchConfig;
@@ -40,7 +40,7 @@ export default function searchIndexer() {
 						console.error("Pagefind Index Failed:", error.message);
 					}
 				}
-				console.log("=".repeat(10) + "Search Indexer Done." + "=".repeat(10));
+				console.log(`${"=".repeat(10)}Search Indexer Done.${"=".repeat(10)}`);
 			},
 		},
 	};

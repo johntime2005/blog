@@ -17,10 +17,9 @@ export async function processCoverImage(
 		// 检查是否启用默认使用随机图
 		if (coverImageConfig.useAsDefault && coverImageConfig.enable) {
 			// 将空image当作"api"处理
-			image = "api";
-		} else {
-			return "";
+			return processCoverImage("api", seed);
 		}
+		return "";
 	}
 
 	// 如果image不是"api"，直接返回原始值
@@ -91,10 +90,9 @@ export function processCoverImageSync(
 		// 检查是否启用默认使用随机图
 		if (coverImageConfig.useAsDefault && coverImageConfig.enable) {
 			// 将空image当作"api"处理
-			image = "api";
-		} else {
-			return "";
+			return processCoverImageSync("api", seed);
 		}
+		return "";
 	}
 
 	// 如果image不是"api"，直接返回原始值

@@ -292,7 +292,7 @@ export class WidgetManager {
 	 * 检查组件是否应该在侧边栏中渲染
 	 * @param componentType 组件类型
 	 */
-	isSidebarComponent(componentType: WidgetComponentType): boolean {
+	isSidebarComponent(_componentType: WidgetComponentType): boolean {
 		// 过滤组件
 		return true;
 	}

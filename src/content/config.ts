@@ -54,6 +54,19 @@ const postsCollection = defineCollection({
 			.optional()
 			.default("public"), // 访问控制级别
 
+		/* Column/Section management - 栏目管理 */
+		columns: z.array(z.string()).optional().default([]), // 文章所属的栏目列表（支持多栏目）
+		columnConfig: z
+			.record(
+				z.string(),
+				z.object({
+					order: z.number().optional(), // 在该栏目中的排序
+					featured: z.boolean().optional(), // 是否在该栏目置顶
+					customTitle: z.string().optional(), // 在该栏目中的自定义标题
+				}),
+			)
+			.optional(), // 栏目特定配置
+
 		/* For internal use */
 		prevTitle: z.string().default(""),
 		prevSlug: z.string().default(""),

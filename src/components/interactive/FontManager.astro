@@ -13,7 +13,7 @@ const getSelectedFonts = () => {
 
 	return selectedIds
 		.map((id) => fontConfig.fonts[id])
-		.filter((font) => font && font.src); // 过滤掉系统字体和不存在的字体
+		.filter((font) => font?.src); // 过滤掉系统字体和不存在的字体
 };
 
 const selectedFonts = getSelectedFonts();

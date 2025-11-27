@@ -51,7 +51,7 @@ export function processEmptyLines(code: string): string {
 
 		// 偶数空行：除以2
 		// 奇数空行：(空行数+1)/2 向下取整
-		let resultEmptyLines;
+		let resultEmptyLines: number;
 		if (emptyLineCount % 2 === 0) {
 			// 偶数
 			resultEmptyLines = emptyLineCount / 2;
@@ -132,7 +132,7 @@ export async function handleCodeCopy(target: Element): Promise<void> {
 		// 处理成功状态
 		const timeoutId = target.getAttribute("data-timeout-id");
 		if (timeoutId) {
-			clearTimeout(Number.parseInt(timeoutId));
+			clearTimeout(Number.parseInt(timeoutId, 10));
 		}
 
 		target.classList.add("success");

@@ -123,7 +123,9 @@ export function validateNumber(
 	min: number,
 	max: number,
 ): boolean {
-	return typeof num === "number" && !isNaN(num) && num >= min && num <= max;
+	return (
+		typeof num === "number" && !Number.isNaN(num) && num >= min && num <= max
+	);
 }
 
 /**
@@ -237,7 +239,7 @@ export async function verifyCsrfToken(
 
 		// 验证时间戳
 		const tokenTime = Number.parseInt(timestamp, 10);
-		if (isNaN(tokenTime) || Date.now() - tokenTime > maxAge) {
+		if (Number.isNaN(tokenTime) || Date.now() - tokenTime > maxAge) {
 			return false;
 		}
 

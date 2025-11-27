@@ -66,11 +66,11 @@ onMount(() => {
 	};
 
 	// 检查Swup是否已经加载
-	if ((window as any).swup && (window as any).swup.hooks) {
+	if ((window as any).swup?.hooks) {
 		(window as any).swup.hooks.on("content:replace", handleContentReplace);
 	} else {
 		document.addEventListener("swup:enable", () => {
-			if ((window as any).swup && (window as any).swup.hooks) {
+			if ((window as any).swup?.hooks) {
 				(window as any).swup.hooks.on("content:replace", handleContentReplace);
 			}
 		});
